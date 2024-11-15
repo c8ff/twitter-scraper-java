@@ -1,0 +1,6 @@
+/.gradle/
+/build/
+/run/
+/out/
+/src/main/java/dev/seeight/api/bsky/**
+/src/test/java/dev/seeight/api/bsky/**
