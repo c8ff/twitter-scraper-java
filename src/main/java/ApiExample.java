@@ -17,10 +17,10 @@
  */
 
 import dev.seeight.twitterscraper.TwitterApi;
-import dev.seeight.twitterscraper.config.ConfigSearch;
+import dev.seeight.twitterscraper.config.timeline.ConfigSearchTimeline;
 import dev.seeight.twitterscraper.config.user.ConfigUserByScreenName;
 import dev.seeight.twitterscraper.config.user.ConfigUserMedia;
-import dev.seeight.twitterscraper.impl.search.SearchResult;
+import dev.seeight.twitterscraper.impl.timeline.SearchByRawQuery;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
 import dev.seeight.twitterscraper.util.JsonUtil;
@@ -44,7 +44,7 @@ public class ApiExample {
 
 		try (CloseableHttpClient client = HttpClients.createDefault()) {
 			// Get the user id (required for some requests)
-			User user = api.scrap(new ConfigUserByScreenName("twitter"), client);
+			User user = api.scrap(new ConfigUserByScreenName("x"), client);
 			// Request the media tab of the user (using the returned id) and parse the results
 			UserMedia userMedia = api.scrap(new ConfigUserMedia(user.restId, null), client);
 			// Print the results
@@ -53,8 +53,11 @@ public class ApiExample {
 			Files.writeString(new File("user-media.json").toPath(), JsonUtil.toJson(userMedia));
 
 			// Similar as before, but this sends a search request.
-			SearchResult result = api.scrap(ConfigSearch.builder("(from:twitter) -filter:replies").count(4).build(), client);
-			// Print results
+			ConfigSearchTimeline config = new ConfigSearchTimeline("(from:x) -filter:replies", null);
+			config.count = 4;
+			// Send the request.
+			SearchByRawQuery result = api.scrap(config, client);
+			// Print results.
 			System.out.println(result);
 			// Save results.
 			Files.writeString(new File("search-result.json").toPath(), JsonUtil.toJson(result));
