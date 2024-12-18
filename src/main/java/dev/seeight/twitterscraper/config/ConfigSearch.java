@@ -34,6 +34,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * @deprecated A rewrite of this class is available, use {@link dev.seeight.twitterscraper.config.timeline.ConfigSearchTimeline} instead.
+ */
+@Deprecated
 public class ConfigSearch implements IConfig<SearchResult> {
 	public final String query;
 	public final int count;
