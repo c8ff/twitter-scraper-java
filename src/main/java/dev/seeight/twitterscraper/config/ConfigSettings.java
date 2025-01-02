@@ -37,7 +37,7 @@ import java.net.URISyntaxException;
 public class ConfigSettings implements IConfig<Settings> {
 	@Override
 	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://api.twitter.com/1.1/account/settings.json";
+		return "https://api.x.com/1.1/account/settings.json";
 	}
 
 	@Override
