@@ -68,6 +68,10 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 			return elm;
 		}
 
+		if (object.get("data") != null) {
+			return elm;
+		}
+
 		JsonObject err = errors.getAsJsonArray().get(0).getAsJsonObject();
 		JsonHelper helper = new JsonHelper(err);
 		throw new TwitterException(helper.next("message").string(), helper.set(err).next("code").integer());
