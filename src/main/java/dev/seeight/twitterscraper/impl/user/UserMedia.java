@@ -115,7 +115,13 @@ public class UserMedia extends Timeline {
 			return m;
 		}
 
-		JsonArray instructions = h.query("result", "timeline_v2", "timeline", "instructions").getAsJsonArray();
+		h.next("result").next("timeline_v2");
+		if (!h.has("timeline")) {
+			m.instructions = Collections.emptyList();
+			return m;
+		}
+
+		JsonArray instructions = h.query("timeline", "instructions").getAsJsonArray();
 		m.instructions = Instruction.fromInstructionsJson(gson, h, instructions);
 		return m;
 	}
