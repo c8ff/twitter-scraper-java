@@ -65,14 +65,16 @@ public class ItemList extends ArrayList<Entry> {
 			if (!(_0 instanceof JsonObject entry)) continue;
 
 			helper.set(entry);
-			if (helper.stringOrDefault("entryId", "").startsWith("user")) {
+			if (helper.string("entryId", "").startsWith("user")) {
+				// Check if result has anything
+				JsonHelper next = helper.next("content").next("itemContent").next("user_results");
+				if (!next.has("result")) continue;
+
 				// Parse entry as user.
-
-				User u = User.fromJson(gson, helper.next("content").next("itemContent").next("user_results").next("result").object(), helper);
+				User u = User.fromJson(gson, next.next("result").object(), helper);
 				list.add(u);
-			} else if (helper.stringOrDefault("entryId", "").startsWith("cursor")) {
-				// Parse entry as bottom cursor.
-
+			} else if (helper.string("entryId", "").startsWith("cursor")) {
+				// Parse entry as cursor.
 				Cursor c = Cursor.fromEntryContent(helper.next("content").object(), helper);
 				list.add(c);
 			}
