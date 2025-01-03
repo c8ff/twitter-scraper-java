@@ -23,7 +23,7 @@ import dev.seeight.twitterscraper.util.JsonHelper;
 import org.jetbrains.annotations.Nullable;
 
 public class Url {
-	public String displayUrl;
+	public @Nullable String displayUrl;
 	public @Nullable String expandedUrl;
 	public String url;
 	public Range range;
@@ -33,8 +33,8 @@ public class Url {
 
 		Url url = new Url();
 
-		url.displayUrl = h.string("display_url");
-		url.expandedUrl = h.stringOrDefault("expanded_url", null);
+		url.displayUrl = h.string("display_url", null);
+		url.expandedUrl = h.string("expanded_url", null);
 		url.url = h.string("url");
 		url.range = Range.fromArray(h.array("indices"));
 
