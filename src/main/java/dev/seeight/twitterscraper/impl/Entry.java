@@ -51,7 +51,11 @@ public class Entry {
 				return null;
 			}
 
-			Tweet e = Tweet.fromJson(gson, h.next("tweet_results").object("result"), h);
+			h.next("tweet_results");
+			if (!h.has("result"))
+				return null;
+
+			Tweet e = Tweet.fromJson(gson, h.object("result"), h);
 			e._tweetDisplayType = h.set(itemContent).string("tweetDisplayType", "Tweet");
 			e.entryId = entryId;
 			e.sortIndex = sortIndex;
