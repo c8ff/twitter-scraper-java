@@ -155,7 +155,7 @@ public class User extends Entry {
 		if (h.has("possibly_sensitive")) {
 			ref.possiblySensitive = h.bool("possibly_sensitive", false);
 		} else if (h.has("status")) {
-			ref.possiblySensitive = h.next("status").bool("possibly_sensitive");
+			ref.possiblySensitive = h.next("status").bool("possibly_sensitive", false);
 			h.set(legacy);
 		}
 
