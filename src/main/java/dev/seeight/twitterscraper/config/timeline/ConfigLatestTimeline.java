@@ -76,7 +76,7 @@ public class ConfigLatestTimeline implements IConfigJsonTree<LatestTimeline> {
 
 		return builder
 			.addParameter("variables", gson.toJson(this))
-			.addParameter("features", gson.toJson(graphQL.get("HomeTimeline").features))
+			.addParameter("features", gson.toJson(graphQL.get("HomeLatestTimeline").features))
 			.build();
 	}
 
