@@ -48,7 +48,6 @@ public class ConfigCreateRetweet implements IConfigJsonTree<Boolean> {
 
 	@Override
 	public Boolean fromJson(JsonElement element, Gson gson) {
-		return new JsonHelper(element).next("data").next("create_retweet").next("retweet_results").next("result").next("rest_id").string().equals(this.tweetId);
 		return !new JsonHelper(element).next("data").next("create_retweet").next("retweet_results").object().isEmpty();
 	}
 }
