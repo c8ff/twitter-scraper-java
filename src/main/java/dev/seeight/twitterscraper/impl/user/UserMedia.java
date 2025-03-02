@@ -59,6 +59,7 @@ public class UserMedia extends Timeline {
 		@SerializedName("id_str")
 		public String id;
 		@SerializedName("media_key")
+		@Nullable
 		public String mediaKey;
 		@SerializedName("media_url_https")
 		public String mediaUrlHttps;

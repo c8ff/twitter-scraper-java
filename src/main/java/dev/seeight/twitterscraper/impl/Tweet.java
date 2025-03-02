@@ -379,7 +379,7 @@ public class Tweet extends Entry {
 					e.url = Url.fromJson(object, helper);
 					helper.set(object);
 					e.id = helper.string("id_str");
-					e.mediaKey = helper.string("media_key");
+					e.mediaKey = helper.string("media_key", null);
 					e.mediaUrlHttps = helper.string("media_url_https");
 					e.type = helper.string("type");
 
@@ -392,21 +392,26 @@ public class Tweet extends Entry {
 						originalInfo.width = helper.integer("width");
 						originalInfo.height = helper.integer("height");
 
-						List<UserMedia.FocusRect> focusRects = new ArrayList<>();
+						if (helper.has("focus_rects")) {
+							List<UserMedia.FocusRect> focusRects = new ArrayList<>();
 
-						for (JsonElement r : helper.array("focus_rects")) {
-							if (!(r instanceof JsonObject v)) continue;
+							for (JsonElement r : helper.array("focus_rects")) {
+								if (!(r instanceof JsonObject v)) continue;
 
-							helper.set(v);
-							UserMedia.FocusRect rect = new UserMedia.FocusRect();
-							rect.x = helper.integer("x");
-							rect.y = helper.integer("y");
-							rect.width = helper.integer("w");
-							rect.height = helper.integer("h");
-							focusRects.add(rect);
+								helper.set(v);
+								UserMedia.FocusRect rect = new UserMedia.FocusRect();
+								rect.x = helper.integer("x");
+								rect.y = helper.integer("y");
+								rect.width = helper.integer("w");
+								rect.height = helper.integer("h");
+								focusRects.add(rect);
+							}
+
+							originalInfo.focusRects = focusRects.toArray(new UserMedia.FocusRect[0]);
+						} else {
+							originalInfo.focusRects = new UserMedia.FocusRect[0];
 						}
 
-						originalInfo.focusRects = focusRects.toArray(new UserMedia.FocusRect[0]);
 						e.originalInfo = originalInfo;
 					}
 
