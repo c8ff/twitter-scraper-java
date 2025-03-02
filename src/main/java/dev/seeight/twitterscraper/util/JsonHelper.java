@@ -321,11 +321,24 @@ public class JsonHelper {
 		return elm != null && value.equals(elm.getAsString());
 	}
 
+	public String[] stringArray(String name, String[] defaultValue) {
+		JsonElement e = this.getValueNullable(name);
+		if (e == null) return defaultValue;
+		return stringArray((JsonArray) e);
+	}
+
+	public String[] stringArray(String name) {
+		return stringArray(this.array(name));
+	}
+
 	/**
 	 * @return Casts {@link #element} to a {@link JsonArray} and then converts it into a {@code String} array.
 	 */
 	public String[] stringArray() {
-		JsonArray array = this.array();
+		return stringArray(this.array());
+	}
+
+	private String[] stringArray(JsonArray array) {
 		if (array.isEmpty()) return new String[0];
 
 		String[] arr = new String[array.size()];
