@@ -122,7 +122,7 @@ public class Entry {
 		}
 
 		TimelineModule t = new TimelineModule();
-		t.items = entries.toArray(new Entry[0]);
+		t.items = entries;
 		t.displayType = h.set(object).string("displayType", null);
 		return t;
 	}

@@ -20,7 +20,9 @@ package dev.seeight.twitterscraper.impl.item;
 
 import dev.seeight.twitterscraper.impl.Entry;
 
+import java.util.List;
+
 public class TimelineModule extends Entry {
-	public Entry[] items;
+	public List<Entry> items;
 	public String displayType;
 }
