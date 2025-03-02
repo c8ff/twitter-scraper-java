@@ -59,6 +59,7 @@ public class TwitterApi {
 	public String csrfToken;
 	public final Gson gson;
 	String clientUUID;
+	public EventHandler eventHandler;
 
 	protected GraphQLMap graphQL;
 
@@ -82,11 +83,9 @@ public class TwitterApi {
 	/**
 	 * Adds the authorization parameters to the provided request.
 	 *
-	 * @param <T>     The type of the request.
 	 * @param request The request to add the parameters to.
-	 * @return The parameter {@code request}.
 	 */
-	private <T extends HttpUriRequestBase> T requestWithCookies(T request) {
+	private void addCookies(HttpUriRequestBase request) {
 		this.assertAuth();
 		request.addHeader(HttpHeaders.AUTHORIZATION, this.bearerAuthorization);
 		request.addHeader(HttpHeaders.COOKIE, this.cookie);
@@ -102,7 +101,6 @@ public class TwitterApi {
 		request.addHeader("Sec-Fetch-Site", "same-origin");
 		request.addHeader("Sec-Fetch-Dest", "empty");
 		request.addHeader("Sec-Fetch-Mode", "cors");
-		return request;
 	}
 
 	/**
@@ -118,7 +116,9 @@ public class TwitterApi {
 		GraphQLMap ql = this.graphQL();
 		URI uri = config.buildURI(gson, new URIBuilder(config.getBaseURL(ql)), ql);
 		HttpUriRequestBase request = config.createRequest(this.gson, uri, ql);
-		return config.resolve(client, requestWithCookies(request), this.gson);
+		this.addCookies(request);
+		if (eventHandler != null) eventHandler.onBeforeResolvingRequest(uri, request);
+		return config.resolve(client, request, this.gson);
 	}
 
 	/**
@@ -192,5 +192,15 @@ public class TwitterApi {
 
 	public static long convertTwitterDateToEpochUTC(String date) {
 		return LocalDateTime.parse(date, formatter).toEpochSecond(ZoneOffset.UTC);
+	}
+
+	public interface EventHandler {
+		/**
+		 * Called before a {@link IConfig} processes and resolves a request.
+		 *
+		 * @param uri The URI of request.
+		 * @param request The request.
+		 */
+		void onBeforeResolvingRequest(URI uri, HttpUriRequestBase request);
 	}
 }
