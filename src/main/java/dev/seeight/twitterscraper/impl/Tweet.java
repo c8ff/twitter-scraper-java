@@ -79,6 +79,8 @@ public class Tweet extends Entry {
 
 	public String _tweetDisplayType = "Tweet";
 
+	public NoteTweet noteTweet;
+
 	// TODO: add support for limitedActionResults
 
 	public static @NotNull Tweet fromJson(Gson gson, JsonObject rootObject, JsonHelper helper) {
@@ -274,6 +276,16 @@ public class Tweet extends Entry {
 
 		tweet.user = User.fromJson(gson, helper.query(rootObject, "core", "user_results", "result").getAsJsonObject(), helper);
 		helper.set(rootObject);
+
+		if (helper.set(rootObject).has("note_tweet")) {
+			helper.next("note_tweet");
+			NoteTweet t = new NoteTweet();
+			t.isExpandable = helper.bool("is_expandable", false);
+			helper.next("note_tweet_results").next("result");
+			t.id = helper.string("id");
+			t.text = helper.string("text");
+			tweet.noteTweet = t;
+		}
 
 		tweet.hasBirdwatchNotes = helper.set(rootObject).bool("has_birdwatch_notes", false);
 		if (helper.has("birdwatch_pivot")) {
