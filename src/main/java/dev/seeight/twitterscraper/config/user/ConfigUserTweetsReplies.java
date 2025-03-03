@@ -22,11 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.UserTweetsReplies;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigUserTweetsReplies implements IConfigJsonTree<UserTweetsReplies> {
 	public final String userId;
@@ -61,7 +63,7 @@ public class ConfigUserTweetsReplies implements IConfigJsonTree<UserTweetsReplie
 	}
 
 	@Override
-	public UserTweetsReplies fromJson(JsonElement element, Gson gson) {
+	public UserTweetsReplies fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return UserTweetsReplies.fromJson(gson, element);
 	}
 }

@@ -23,12 +23,14 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterList;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigListByRestId implements IConfigJsonTree<TwitterList> {
 	public final @NotNull String listId;
@@ -38,7 +40,7 @@ public class ConfigListByRestId implements IConfigJsonTree<TwitterList> {
 	}
 
 	@Override
-	public TwitterList fromJson(JsonElement element, Gson gson) {
+	public TwitterList fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		JsonHelper h = new JsonHelper(element);
 		return TwitterList.fromJson(gson, h.next("data").next("list").object(), h);
 	}

@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.TweetDetail;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigTweetDetail implements IConfigJsonTree<TweetDetail> {
 	@SerializedName("focalTweetId")
@@ -66,7 +68,7 @@ public class ConfigTweetDetail implements IConfigJsonTree<TweetDetail> {
 	}
 
 	@Override
-	public TweetDetail fromJson(JsonElement element, Gson gson) {
+	public TweetDetail fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return TweetDetail.fromJson(gson, new JsonHelper(element), element);
 	}
 

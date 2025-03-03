@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.Timeline;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.inst.Instruction;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigCommunityTweets implements IConfigJsonTree<Timeline> {
 	public final @NotNull String communityId;
@@ -60,7 +62,7 @@ public class ConfigCommunityTweets implements IConfigJsonTree<Timeline> {
 	}
 
 	@Override
-	public Timeline fromJson(JsonElement element, Gson gson) {
+	public Timeline fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		Timeline l = new Timeline() {
 		};
 		JsonHelper h = new JsonHelper(element);

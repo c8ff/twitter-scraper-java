@@ -22,12 +22,16 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Serves the same purpose of {@link IConfig}, but simplifies the parsing of an expected JSON result.
@@ -38,8 +42,14 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 	@Override
 	default T resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
 		String responseStr = TwitterApi.executeString(client, request);
-		JsonElement json = assertErrors(JsonParser.parseString(responseStr));
-		return this.fromJson(json, gson);
+		List<TwitterError> errors = new ArrayList<>();
+		JsonElement json;
+		try {
+			json = assertErrors(JsonParser.parseString(responseStr), request, errors);
+		} catch (Throwable e) {
+			throw new RuntimeException("Cannot parse JSON. Original response: " + responseStr, e);
+		}
+		return this.fromJson(json, gson, errors);
 	}
 
 	/**
@@ -47,18 +57,21 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 	 *
 	 * @param element The root of the JSON tree.
 	 * @param gson    The gson instance.
+	 * @param errors  A list containing errors from Twitter. Any fatal errors will be thrown before this point.
 	 * @return A {@link T} instance.
 	 */
-	T fromJson(JsonElement element, Gson gson);
+	T fromJson(JsonElement element, Gson gson, List<TwitterError> errors);
 
 	/**
 	 * Checks for errors inside the JSON root.
 	 *
-	 * @param elm The JSON root to be checked.
+	 * @param elm       The JSON root to be checked.
+	 * @param request   The request that provided the JSON data.
+	 * @param errorList A list of errors. If any errors are parsed, they will be added to this list.
 	 * @return The parameter {@code elm}.
 	 * @throws TwitterException When an error is present on the element.
 	 */
-	static JsonElement assertErrors(@NotNull JsonElement elm) throws TwitterException {
+	static JsonElement assertErrors(@NotNull JsonElement elm, @Nullable HttpUriRequestBase request, @Nullable List<TwitterError> errorList) throws TwitterException {
 		if (!(elm instanceof JsonObject object)) {
 			return elm;
 		}
@@ -68,12 +81,14 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 			return elm;
 		}
 
-		if (object.get("data") != null) {
-			return elm;
+		if (errorList == null) errorList = new ArrayList<>(errors.getAsJsonArray().size());
+		TwitterError.fromJsonArray(new JsonHelper(elm), errors.getAsJsonArray(), errorList);
+		for (TwitterError err : errorList) {
+			if (err.code == TwitterError.ALREADY_RETWEETED || err.code == TwitterError.ALREADY_FAVORITED || err.code == TwitterError.ALREADY_UNFAVORITED) continue;
+			if (err.kind.equalsIgnoreCase("NonFatal")) continue;
+			throw new TwitterException(err.message, err.code, request);
 		}
 
-		JsonObject err = errors.getAsJsonArray().get(0).getAsJsonObject();
-		JsonHelper helper = new JsonHelper(err);
-		throw new TwitterException(helper.next("message").string(), helper.set(err).next("code").integer());
+		return elm;
 	}
 }

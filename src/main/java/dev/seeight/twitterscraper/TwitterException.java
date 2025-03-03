@@ -18,13 +18,25 @@
 
 package dev.seeight.twitterscraper;
 
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.jetbrains.annotations.Nullable;
+
 public class TwitterException extends RuntimeException {
 	public final String message;
 	public final int code;
+	public final @Nullable HttpUriRequestBase request;
+
+	public TwitterException(String message, int code, HttpUriRequestBase request) {
+		super(message + " (" + code + ")");
+		this.message = message;
+		this.code = code;
+		this.request = request;
+	}
 
 	public TwitterException(String message, int code) {
 		super(message + " (" + code + ")");
 		this.message = message;
 		this.code = code;
+		this.request = null;
 	}
 }

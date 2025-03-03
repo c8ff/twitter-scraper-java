@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.UserUnavailableException;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigUserByScreenName implements IConfigJsonTree<User> {
 	@NotNull
@@ -48,13 +50,13 @@ public class ConfigUserByScreenName implements IConfigJsonTree<User> {
 	@Override
 	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
 		return builder
-			.addParameter("variables", "{\"screen_name\":\"%s\",\"withSafetyModeUserFields\":%s}".formatted(username, withSafetyModeUserFields))
+			.addParameter("variables", String.format("{\"screen_name\":\"%s\",\"withSafetyModeUserFields\":%s}", username, withSafetyModeUserFields))
 			.addParameter("features", gson.toJson(graphQL.get("UserByScreenName").features))
 			.build();
 	}
 
 	@Override
-	public User fromJson(JsonElement element, Gson gson) {
+	public User fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		JsonHelper helper = new JsonHelper(element).next("data");
 
 		// Check if the user exists.

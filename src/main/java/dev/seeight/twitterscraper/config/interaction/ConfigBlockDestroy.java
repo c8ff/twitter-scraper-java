@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -31,6 +32,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigBlockDestroy implements IConfigJsonTree<User> {
 	private final String userId;
@@ -40,7 +42,7 @@ public class ConfigBlockDestroy implements IConfigJsonTree<User> {
 	}
 
 	@Override
-	public User fromJson(JsonElement element, Gson gson) {
+	public User fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return User.fromJson(gson, (JsonObject) element, new JsonHelper(element));
 	}
 

@@ -24,6 +24,7 @@ import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.config.SendType;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.LatestTimeline;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.core5.net.URIBuilder;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigLatestTimeline implements IConfigJsonTree<LatestTimeline> {
 	public int count = 20;
@@ -81,7 +83,7 @@ public class ConfigLatestTimeline implements IConfigJsonTree<LatestTimeline> {
 	}
 
 	@Override
-	public LatestTimeline fromJson(JsonElement element, Gson gson) {
+	public LatestTimeline fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return LatestTimeline.fromJson(gson, element);
 	}
 }

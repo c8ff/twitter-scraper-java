@@ -24,15 +24,17 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterList;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigPinnedTimelines implements IConfigJsonTree<TwitterList[]> {
 	@Override
-	public TwitterList[] fromJson(JsonElement element, Gson gson) {
+	public TwitterList[] fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		JsonHelper h = new JsonHelper(element);
 		JsonArray lol = h.next("data").next("pinned_timelines").array("pinned_timelines");
 		return TwitterList.fromList(gson, lol, h).toArray(new TwitterList[0]);

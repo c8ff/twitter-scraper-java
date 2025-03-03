@@ -23,11 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigCreateRetweet implements IConfigJsonTree<Boolean> {
 	public final String tweetId;
@@ -47,7 +49,8 @@ public class ConfigCreateRetweet implements IConfigJsonTree<Boolean> {
 	}
 
 	@Override
-	public Boolean fromJson(JsonElement element, Gson gson) {
+	public Boolean fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+		for (TwitterError error : errors) if (error.code == TwitterError.ALREADY_RETWEETED) return true;
 		return !new JsonHelper(element).next("data").next("create_retweet").next("retweet_results").object().isEmpty();
 	}
 }

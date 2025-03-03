@@ -22,12 +22,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.SearchByRawQuery;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 	public final String rawQuery;
@@ -55,7 +57,7 @@ public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 	}
 
 	@Override
-	public SearchByRawQuery fromJson(JsonElement element, Gson gson) {
+	public SearchByRawQuery fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return SearchByRawQuery.fromJson(gson, new JsonHelper(element), element);
 	}
 

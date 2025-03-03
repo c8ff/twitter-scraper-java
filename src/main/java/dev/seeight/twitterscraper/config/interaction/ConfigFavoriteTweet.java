@@ -23,11 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigFavoriteTweet implements IConfigJsonTree<String> {
 	public final String tweetId;
@@ -47,8 +49,11 @@ public class ConfigFavoriteTweet implements IConfigJsonTree<String> {
 	}
 
 	@Override
-	public String fromJson(JsonElement element, Gson gson) {
+	public String fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+		for (TwitterError error : errors) if (error.code == TwitterError.ALREADY_FAVORITED) return "Done";
 		JsonHelper h = new JsonHelper(element);
-		return h.query("data", "favorite_tweet").getAsString();
+		h.next("data");
+		if (h.object().isEmpty()) return "Done";
+		return h.query("favorite_tweet").getAsString();
 	}
 }

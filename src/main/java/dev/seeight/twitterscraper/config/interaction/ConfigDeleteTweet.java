@@ -23,11 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Note: this seems to always return empty tweets (and by extension, always returns true).
@@ -50,7 +52,7 @@ public class ConfigDeleteTweet implements IConfigJsonTree<Boolean> {
 	}
 
 	@Override
-	public Boolean fromJson(JsonElement element, Gson gson) {
+	public Boolean fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return new JsonHelper(element).next("data").next("delete_tweet").next("tweet_results").object().isEmpty();
 	}
 }

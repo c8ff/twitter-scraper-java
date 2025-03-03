@@ -24,6 +24,7 @@ import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.Tweet;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigCreateTextTweet implements IConfigJsonTree<Tweet> {
 	@NotNull
@@ -69,7 +71,7 @@ public class ConfigCreateTextTweet implements IConfigJsonTree<Tweet> {
 	}
 
 	@Override
-	public Tweet fromJson(JsonElement element, Gson gson) {
+	public Tweet fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		JsonHelper h = new JsonHelper(element).next("data").next("create_tweet").next("tweet_results").next("result");
 		return Tweet.fromJson(gson, h.object(), h);
 	}

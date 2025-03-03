@@ -23,11 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigDeleteRetweet implements IConfigJsonTree<Boolean> {
 	public final String tweetId;
@@ -47,7 +49,7 @@ public class ConfigDeleteRetweet implements IConfigJsonTree<Boolean> {
 	}
 
 	@Override
-	public Boolean fromJson(JsonElement element, Gson gson) {
+	public Boolean fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		JsonHelper h = new JsonHelper(element);
 		return h.next("data").next("unretweet").next("source_tweet_results").next("result").next("rest_id").string().equals(this.tweetId);
 	}

@@ -33,6 +33,7 @@ import org.apache.hc.core5.net.URIBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class ConfigSettings implements IConfig<Settings> {
 	@Override
@@ -58,9 +59,6 @@ public class ConfigSettings implements IConfig<Settings> {
 	@Override
 	public Settings resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
 		String s = TwitterApi.executeString(client, request);
-		if (s.contains("error")) {
-			IConfigJsonTree.assertErrors(JsonParser.parseString(s));
-		}
-		return gson.fromJson(s, Settings.class);
+		return gson.fromJson(IConfigJsonTree.assertErrors(JsonParser.parseString(s), request, null), Settings.class);
 	}
 }

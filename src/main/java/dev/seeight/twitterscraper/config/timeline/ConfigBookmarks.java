@@ -22,11 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.Bookmarks;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigBookmarks implements IConfigJsonTree<Bookmarks> {
 	public int count = 20;
@@ -51,7 +53,7 @@ public class ConfigBookmarks implements IConfigJsonTree<Bookmarks> {
 	}
 
 	@Override
-	public Bookmarks fromJson(JsonElement element, Gson gson) {
+	public Bookmarks fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return Bookmarks.fromJson(gson, element);
 	}
 }

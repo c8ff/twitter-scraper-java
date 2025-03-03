@@ -23,11 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class ConfigUnFavoriteTweet implements IConfigJsonTree<String> {
 	public final String tweetId;
@@ -47,7 +49,10 @@ public class ConfigUnFavoriteTweet implements IConfigJsonTree<String> {
 	}
 
 	@Override
-	public String fromJson(JsonElement element, Gson gson) {
-		return new JsonHelper(element).query("data", "unfavorite_tweet").getAsString();
+	public String fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+		for (TwitterError error : errors) if (error.code == TwitterError.ALREADY_UNFAVORITED) return "Done";
+		JsonHelper h = new JsonHelper(element).next("data");
+		if (h.object().isEmpty()) return "Done";
+		return h.string("unfavorite_tweet");
 	}
 }

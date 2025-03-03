@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class ConfigUserMedia implements IConfigJsonTree<UserMedia> {
@@ -64,7 +66,7 @@ public class ConfigUserMedia implements IConfigJsonTree<UserMedia> {
 	}
 
 	@Override
-	public UserMedia fromJson(JsonElement element, Gson gson) {
+	public UserMedia fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return UserMedia.fromJson(gson, element);
 	}
 }
