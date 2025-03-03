@@ -21,6 +21,7 @@ package dev.seeight.twitterscraper.util;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
+import dev.seeight.xeno.platform.PlatformExtensions;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -36,7 +37,7 @@ public class GsonUtil {
 
 				try {
 					Method method = ReflectiveTypeAdapterFactory.Adapter.class.getDeclaredMethod("createAccumulator");
-					boolean ac = method.canAccess(refAdapter);
+					boolean ac = PlatformExtensions.Instance.impl.canAccessMethod(method, refAdapter);
 					if (!ac) method.setAccessible(true);
 					//noinspection unchecked
 					T object = (T) method.invoke(refAdapter);
