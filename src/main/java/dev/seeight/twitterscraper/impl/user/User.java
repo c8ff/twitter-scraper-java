@@ -27,6 +27,7 @@ import dev.seeight.twitterscraper.impl.Entry;
 import dev.seeight.twitterscraper.impl.Url;
 import dev.seeight.twitterscraper.util.GsonUtil;
 import dev.seeight.twitterscraper.util.JsonHelper;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,8 +38,11 @@ public class User extends Entry {
 
 	// legacy
 	public String createdAt;
+	public String rawDescription;
 	public String description;
 	public List<Url> descriptionUrls;
+
+	public @Nullable User.Birthdate birthdate;
 
 	public Url url;
 
@@ -71,6 +75,7 @@ public class User extends Entry {
 	public boolean following;
 	public boolean followedBy;
 	public boolean blocking;
+	public boolean blockedBy;
 	public boolean muting;
 	public boolean notifications;
 	public boolean wantRetweets;
@@ -88,9 +93,33 @@ public class User extends Entry {
 		} else {
 			legacy = h.set(obj).next("legacy").object();
 		}
+
+		// (inside 'root' object)
+		h.set(obj);
+
+		ref.blueVerified = h.bool("is_blue_verified", false);
+
+		String s = h.string("profile_image_shape", "");
+		switch (s) {
+			case "Square" -> ref.profileImageShape = ProfileImageShape.SQUARE;
+			case "Circle" -> ref.profileImageShape = ProfileImageShape.CIRCLE;
+			default -> ref.profileImageShape = ProfileImageShape.UNKNOWN;
+		}
+
+		if (h.has("legacy_extended_profile") && h.next("legacy_extended_profile").has("birthdate")) {
+			h.next("birthdate");
+			var birthdate = new Birthdate();
+			birthdate.day = h.integer("day", -1);
+			birthdate.month = h.integer("month", -1);
+			birthdate.year = h.integer("year", -1);
+			birthdate.visibility = Birthdate.Visibility.from(h.string("visibility"));
+			birthdate.yearVisibility = Birthdate.Visibility.from(h.string("year_visibility"));
+			ref.birthdate = birthdate;
+		}
+
 		h.set(legacy);
 		ref.createdAt = h.string("created_at");
-		ref.description = h.string("description");
+		ref.rawDescription = ref.description = h.string("description");
 
 		// Replace "t.co" links with normal links
 		JsonObject entities = h.object("entities");
@@ -118,18 +147,6 @@ public class User extends Entry {
 		// Define URL in bio
 		if (entities.has("url")) {
 			ref.url = Url.fromJson(h.set(entities).next("url").next("urls").get(0).object(), h);
-		}
-
-		// (inside 'root' object)
-		h.set(obj);
-
-		ref.blueVerified = h.bool("is_blue_verified", false);
-
-		String s = h.string("profile_image_shape", "");
-		switch (s) {
-			case "Square" -> ref.profileImageShape = ProfileImageShape.SQUARE;
-			case "Circle" -> ref.profileImageShape = ProfileImageShape.CIRCLE;
-			default -> ref.profileImageShape = ProfileImageShape.UNKNOWN;
 		}
 
 		// (inside legacy object)
@@ -172,10 +189,38 @@ public class User extends Entry {
 		ref.following = h.bool("following", false);
 		ref.followedBy = h.bool("followed_by", false);
 		ref.blocking = h.bool("blocking", false);
+		ref.blockedBy = h.bool("blocked_by", false);
 		ref.muting = h.bool("muting", false);
 		ref.notifications = h.bool("notifications", false);
 		ref.wantRetweets = h.bool("want_retweets", false);
 
 		return ref;
+	}
+
+	public static class Birthdate {
+		public int day;
+		public int month;
+		public int year;
+		public Visibility visibility;
+		public Visibility yearVisibility;
+
+		public enum Visibility {
+			Public,
+			Followers,
+			Following,
+			MutualFollow,
+			Self,
+			;
+
+			static Visibility from(String str) {
+				for (Visibility value : values()) {
+					if (value.name().equalsIgnoreCase(str)) {
+						return value;
+					}
+				}
+
+				throw new RuntimeException("Unknown visibility type: " + str);
+			}
+		}
 	}
 }
