@@ -12,6 +12,7 @@ public class TwitterError {
 	public static final int ALREADY_RETWEETED = 327;
 	public static final int ALREADY_FAVORITED = 139;
 	public static final int ALREADY_UNFAVORITED = 144;
+	public static final int TIMEOUT_UNSPECIFIED = 29;
 
 	public String message;
 	public String[] path;
@@ -25,11 +26,11 @@ public class TwitterError {
 
 		TwitterError error = new TwitterError();
 		error.message = h.string("message");
-		error.path = h.stringArray("path", new String[0]);
 		error.code = h.integer("code");
-		error.kind = h.string("kind");
-		error.name = h.string("name");
-		error.source = h.string("source");
+		error.path = h.stringArray("path", new String[0]);
+		error.kind = h.string("kind", null);
+		error.name = h.string("name", null);
+		error.source = h.string("source", null);
 		return error;
 	}
 
