@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.seeight.twitterscraper.impl.timeline;
+package dev.seeight.twitterscraper.impl.user;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -27,19 +27,19 @@ import dev.seeight.twitterscraper.util.JsonHelper;
 
 import java.util.Collections;
 
-public class Likes extends Timeline {
-	public static Likes fromJson(Gson gson, JsonElement element) {
+public class UserLikes extends Timeline {
+	public static UserLikes fromJson(Gson gson, JsonElement element) {
 		JsonHelper h = new JsonHelper(element);
 		h.next("data").next("user");
 
-		Likes l = new Likes();
+		UserLikes l = new UserLikes();
 
 		if (!h.has("result")) {
 			l.instructions = Collections.emptyList();
 			return l;
 		}
 
-		JsonArray jInstructions = h.next("result").next("timeline_v2").next("timeline").next("instructions").array();
+		JsonArray jInstructions = h.next("result").next("timeline").next("timeline").next("instructions").array();
 		l.instructions = Instruction.fromInstructionsJson(gson, h, jInstructions);
 		return l;
 	}

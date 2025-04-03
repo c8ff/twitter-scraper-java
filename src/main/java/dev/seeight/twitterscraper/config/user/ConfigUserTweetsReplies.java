@@ -34,10 +34,9 @@ public class ConfigUserTweetsReplies implements IConfigJsonTree<UserTweetsReplie
 	public final String userId;
 	public int count = 20;
 	public final String cursor;
-	public boolean includePromotedContent = true;
-	public boolean withCommunity = true;
+	public boolean includePromotedContent = false;
+	public boolean withQuickPromoteEligibilityTweetFields = false;
 	public boolean withVoice = true;
-	public boolean withV2Timeline = true;
 
 	public ConfigUserTweetsReplies(String userId) {
 		this(userId, null);

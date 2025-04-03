@@ -41,10 +41,8 @@ public class ConfigUserMedia implements IConfigJsonTree<UserMedia> {
 	public final String cursor;
 
 	public boolean includePromotedContent = false;
-	public boolean withClientEventToken = false;
-	public boolean withBirdwatchNotes = false;
+	public boolean withQuickPromoteEligibilityTweetFields = false;
 	public boolean withVoice = true;
-	public boolean withV2Timeline = true;
 
 	public ConfigUserMedia(@NotNull String userId, @Nullable String cursor) {
 		this.userId = userId;

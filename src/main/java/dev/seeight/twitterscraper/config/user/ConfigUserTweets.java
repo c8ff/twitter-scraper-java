@@ -37,7 +37,6 @@ public class ConfigUserTweets implements IConfigJsonTree<UserTweets> {
 	public boolean includePromotedContent = true;
 	public boolean withQuickPromoteEligibilityTweetFields = true;
 	public boolean withVoice = true;
-	public boolean withV2Timeline = true;
 
 	public ConfigUserTweets(String userId) {
 		this(userId, null);

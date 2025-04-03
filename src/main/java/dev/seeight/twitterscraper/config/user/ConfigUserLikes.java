@@ -23,22 +23,20 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
-import dev.seeight.twitterscraper.impl.timeline.Likes;
+import dev.seeight.twitterscraper.impl.user.UserLikes;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-public class ConfigUserLikes implements IConfigJsonTree<Likes> {
+public class ConfigUserLikes implements IConfigJsonTree<UserLikes> {
 	public final String userId;
 	public int count = 40;
 	public final String cursor;
 	public boolean includePromotedContent = false;
-	public boolean withClientEventToken = false;
-	public boolean withBirdwatchNotes = false;
+	public boolean withQuickPromoteEligibilityTweetFields = false;
 	public boolean withVoice = true;
-	public boolean withV2Timeline = true;
 
 	public ConfigUserLikes(String userId, String cursor) {
 		this.userId = userId;
@@ -60,7 +58,7 @@ public class ConfigUserLikes implements IConfigJsonTree<Likes> {
 	}
 
 	@Override
-	public Likes fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
-		return Likes.fromJson(gson, element);
+	public UserLikes fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+		return UserLikes.fromJson(gson, element);
 	}
 }

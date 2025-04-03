@@ -116,7 +116,7 @@ public class UserMedia extends Timeline {
 			return m;
 		}
 
-		h.next("result").next("timeline_v2");
+		h.next("result").next("timeline");
 		if (!h.has("timeline")) {
 			m.instructions = Collections.emptyList();
 			return m;

@@ -40,7 +40,7 @@ public class UserTweetsReplies extends Timeline {
 			return t;
 		}
 
-		JsonArray instructions = h.query("result", "timeline_v2", "timeline", "instructions").getAsJsonArray();
+		JsonArray instructions = h.query("result", "timeline", "timeline", "instructions").getAsJsonArray();
 		t.instructions = Instruction.fromInstructionsJson(gson, h, instructions);
 		return t;
 	}
