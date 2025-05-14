@@ -38,6 +38,7 @@ public class ConfigTweetDetail implements IConfigJsonTree<TweetDetail> {
 	public final String tweetId;
 	@Nullable
 	public final String cursor;
+	public RankingMode rankingMode = null;
 	public String referrer = "tweet";
 	public String controller_data = null;
 	public boolean with_rux_injections = false;
@@ -72,15 +73,9 @@ public class ConfigTweetDetail implements IConfigJsonTree<TweetDetail> {
 		return TweetDetail.fromJson(gson, new JsonHelper(element), element);
 	}
 
-	public String getVariablesValue() {
-		StringBuilder b = new StringBuilder();
-
-		b.append("{\"focalTweetId\":\"").append(tweetId).append("\"");
-		if (this.cursor != null) {
-			b.append(",\"cursor\":\"").append(this.cursor).append("\"");
-		}
-		b.append(",\"referrer\":\"tweet\",\"with_rux_injections\":false,\"includePromotedContent\":true,\"withCommunity\":true,\"withQuickPromoteEligibilityTweetFields\":true,\"withBirdwatchNotes\":true,\"withVoice\":true,\"withV2Timeline\":true}");
-
-		return b.toString();
+	public enum RankingMode {
+		Relevance,
+		Recency,
+		Likes
 	}
 }
