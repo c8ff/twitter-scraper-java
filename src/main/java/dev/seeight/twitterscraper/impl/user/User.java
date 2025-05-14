@@ -56,7 +56,7 @@ public class User extends Entry {
 
 	public String name;
 	public String screenName;
-	public String location;
+	public @Nullable String location;
 	public String[] pinnedTweetsIds;
 	public boolean possiblySensitive;
 	public boolean verified;
@@ -156,17 +156,17 @@ public class User extends Entry {
 		ref.likedTweetsCount = h.integer("favourites_count");
 		ref.followersCount = h.integer("followers_count");
 		ref.followingCount = h.integer("friends_count");
-		ref.mediaCount = h.integer("media_count");
+		ref.mediaCount = h.integer("media_count", -1);
 		ref.tweetsCount = h.integer("statuses_count");
 
 		// Info
 		ref.name = h.string("name");
 		ref.screenName = h.string("screen_name");
-		ref.location = h.string("location");
+		ref.location = h.string("location", null);
 		ref.profileBannerUrl = h.string("profile_banner_url", null);
 		ref.profileImageUrl = h.string("profile_image_url_https");
 
-		ref.pinnedTweetsIds = h.set(legacy).next("pinned_tweet_ids_str").stringArray();
+		ref.pinnedTweetsIds = h.set(legacy).stringArray("pinned_tweet_ids_str", new String[0]);
 		h.set(legacy);
 
 		if (h.has("possibly_sensitive")) {
