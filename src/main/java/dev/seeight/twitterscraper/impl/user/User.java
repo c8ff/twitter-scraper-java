@@ -179,7 +179,7 @@ public class User extends Entry {
 		ref.isProtected = h.bool("protected", false);
 
 		// verified shenanigans
-		ref.verified = h.bool("verified");
+		ref.verified = h.bool("verified", false);
 		ref.verifiedType = h.string("verified_type", null);
 
 		// user specific info
