@@ -164,7 +164,9 @@ public class User extends Entry {
 		ref.screenName = h.string("screen_name");
 		ref.location = h.string("location", null);
 		ref.profileBannerUrl = h.string("profile_banner_url", null);
-		ref.profileImageUrl = h.string("profile_image_url_https");
+		if (!h.has("profile_image_url_https")) {
+			ref.profileBannerUrl = h.set(obj).next("avatar").string("image_url");
+		} else ref.profileImageUrl = h.string("profile_image_url_https");
 
 		ref.pinnedTweetsIds = h.set(legacy).stringArray("pinned_tweet_ids_str", new String[0]);
 		h.set(legacy);
