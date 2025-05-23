@@ -117,8 +117,29 @@ public class User extends Entry {
 			ref.birthdate = birthdate;
 		}
 
-		h.set(legacy);
+		ref.profileImageUrl = h.set(obj).next("avatar").string("image_url");
+
+		h.set(obj).next("core");
+
+		ref.screenName = h.string("screen_name");
+		ref.name = h.string("name");
 		ref.createdAt = h.string("created_at");
+
+		// what the fuck
+		if (h.set(obj).tryNext("relationship_perspectives")) {
+			ref.following = h.bool("following");
+			ref.followedBy = h.bool("followed_by", false);
+			ref.blocking = h.bool("blocking", false);
+			ref.blockedBy = h.bool("blocked_by", false);
+			ref.muting = h.bool("muting", false);
+		}
+
+		// what??
+		if (h.set(obj).tryNext("verification")) ref.verified = h.bool("verified");
+		if (h.set(obj).tryNext("privacy")) ref.isProtected = h.bool("protected");
+		if (h.set(obj).tryNext("location")) ref.location = h.string("location");
+
+		h.set(legacy);
 		ref.rawDescription = ref.description = h.string("description");
 
 		// Replace "t.co" links with normal links
@@ -160,14 +181,7 @@ public class User extends Entry {
 		ref.tweetsCount = h.integer("statuses_count");
 
 		// Info
-		ref.name = h.string("name");
-		ref.screenName = h.string("screen_name");
-		ref.location = h.string("location", null);
 		ref.profileBannerUrl = h.string("profile_banner_url", null);
-		if (!h.has("profile_image_url_https")) {
-			ref.profileImageUrl = h.set(obj).next("avatar").string("image_url");
-		} else ref.profileImageUrl = h.string("profile_image_url_https");
-
 		ref.pinnedTweetsIds = h.set(legacy).stringArray("pinned_tweet_ids_str", new String[0]);
 		h.set(legacy);
 
@@ -178,21 +192,10 @@ public class User extends Entry {
 			h.set(legacy);
 		}
 
-		ref.isProtected = h.bool("protected", false);
-
-		// verified shenanigans
-		ref.verified = h.bool("verified", false);
-		ref.verifiedType = h.string("verified_type", null);
-
 		// user specific info
 		ref.canDM = h.bool("can_dm", false);
 		ref.canMediaTag = h.bool("can_media_tag", false);
 		ref.friendsCount = h.integer("friends_count", 0);
-		ref.following = h.bool("following", false);
-		ref.followedBy = h.bool("followed_by", false);
-		ref.blocking = h.bool("blocking", false);
-		ref.blockedBy = h.bool("blocked_by", false);
-		ref.muting = h.bool("muting", false);
 		ref.notifications = h.bool("notifications", false);
 		ref.wantRetweets = h.bool("want_retweets", false);
 

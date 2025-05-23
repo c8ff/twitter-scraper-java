@@ -18,16 +18,11 @@
 
 package dev.seeight.twitterscraper.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import dev.seeight.twitterscraper.JsonFormatException;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -306,7 +301,7 @@ public class JsonHelper {
 	 */
 	public boolean bool(@NotNull String name, boolean defaultValue) {
 		JsonElement v = this.getValueNullable(name);
-		if (v == null) {
+		if (v == null || v.isJsonNull()) {
 			return defaultValue;
 		}
 		return v.getAsBoolean();
@@ -387,7 +382,12 @@ public class JsonHelper {
 	public <T> List<T> list(Function<JsonElement, T> transformer) {
 		JsonArray array = this.array();
 		if (array.isEmpty()) return Collections.emptyList();
-		return List.of(this.array(transformer));
+
+		List<T> l = new ArrayList<>();
+		for (int i = 0; i < array.size(); i++) {
+			l.add(transformer.apply(array.get(i)));
+		}
+		return l;
 	}
 
 	/**
@@ -494,5 +494,11 @@ public class JsonHelper {
 
 	public boolean has(String property) {
 		return this.element instanceof JsonObject s && s.has(property);
+	}
+
+	public boolean tryNext(String property) {
+		var result = this.has(property);
+		if (result) this.next(property);
+		return result;
 	}
 }
