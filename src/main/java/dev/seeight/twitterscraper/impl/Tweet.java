@@ -19,7 +19,6 @@
 package dev.seeight.twitterscraper.impl;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.TwitterApi;
@@ -33,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class Tweet extends Entry {
 	public int bookmarks;
@@ -46,6 +44,7 @@ public class Tweet extends Entry {
 	public long creationDate;
 	public String createdAt;
 	public String id;
+	@Deprecated
 	public String text;
 	public String rawText;
 	public String language;
@@ -56,8 +55,6 @@ public class Tweet extends Entry {
 	public boolean isQuoteStatus;
 	public boolean possiblySensitive;
 	public boolean possiblySensitiveEditable;
-	@Deprecated
-	public UserMedia.Media media;
 	public User user;
 	public String source;
 
@@ -117,7 +114,7 @@ public class Tweet extends Entry {
 		}
 
 		tweet.id = rootObject.get("rest_id").getAsString();
-		tweet.views = helper.set(rootObject).next("views").stringOrDefault("count", null);
+		tweet.views = helper.set(rootObject).next("views").string("count", null);
 		tweet.publishDevice = helper.set(rootObject).string("source");
 
 		helper.set(legacy);
@@ -127,132 +124,11 @@ public class Tweet extends Entry {
 		tweet.creationDate = TwitterApi.convertTwitterDateToEpochUTC(tweet.createdAt);
 
 		String rawText = helper.string("full_text");
-		String fullText = rawText;
 
-		List<UserMedia.Photo> photos = new ArrayList<>();
-		List<UserMedia.Video> videos = new ArrayList<>();
-		List<UserMedia.Video> animatedGif = new ArrayList<>();
-
-		if (legacy.has("extended_entities")) {
-			JsonObject extendedEntities = helper.set(legacy).next("extended_entities").object();
-
-			if (extendedEntities.has("media")) {
-				JsonArray extMedia = extendedEntities.get("media").getAsJsonArray();
-
-				for (JsonElement jsonElement : extMedia) {
-					if (!(jsonElement instanceof JsonObject obj)) {
-						continue;
-					}
-
-					String url = obj.get("url").getAsString();
-					fullText = fullText.replace(url, "");
-
-					helper.set(obj);
-					String type = helper.string("type");
-					String mediaUrlHttps = helper.string("media_url_https");
-
-					if (type.equals("photo")) {
-						JsonObject originalInfo = helper.object("original_info");
-
-						UserMedia.Photo e = GsonUtil.createObject(gson, UserMedia.Photo.class);
-
-						// I hate this
-						List<UserMedia.PhotoSize> listSizes = new ArrayList<>();
-						JsonObject sizes = helper.object("sizes");
-
-						UserMedia.PhotoSize f = GsonUtil.createObject(gson, UserMedia.PhotoSize.class);
-						f.name = "orig";
-						f.width = originalInfo.get("width").getAsInt();
-						f.height = originalInfo.get("height").getAsInt();
-						listSizes.add(f);
-
-						sizes.asMap().forEach((s, element) -> {
-							if (!(element instanceof JsonObject b)) return;
-
-							UserMedia.PhotoSize e1 = GsonUtil.createObject(gson, UserMedia.PhotoSize.class);
-							e1.name = s;
-							e1.width = b.get("w").getAsInt();
-							e1.height = b.get("h").getAsInt();
-							listSizes.add(e1);
-						});
-						e.sizes = listSizes.toArray(new UserMedia.PhotoSize[0]);
-
-						photos.add(e);
-
-						String id = mediaUrlHttps.substring(mediaUrlHttps.lastIndexOf('/') + 1);
-						int dotIndex = id.indexOf('.');
-						int paramIndex = id.indexOf('&');
-						String format = paramIndex != -1 ? id.substring(dotIndex + 1, paramIndex) : id.substring(dotIndex + 1);
-						id = id.substring(0, dotIndex);
-
-						e.url = url;
-						e.id = id;
-						e.format = format;
-						continue;
-					}
-
-					if (!type.equals("video") && !type.equals("animated_gif")) {
-						System.out.println("Unsupported media type: " + type);
-						continue;
-					}
-
-					UserMedia.Video video = GsonUtil.createObject(gson, UserMedia.Video.class);
-					video.thumbnail = mediaUrlHttps;
-					JsonArray variants = helper.query("video_info", "variants").getAsJsonArray();
-
-					JsonObject best = null;
-					int bestBitrate = 0;
-					for (JsonElement element : variants) {
-						// Prefer mp4 over another type
-						if (!helper.set(element).next("content_type").string().equals("video/mp4")) {
-							continue;
-						}
-
-						// Select best bitrate
-						int bitrate = element.getAsJsonObject().get("bitrate").getAsInt();
-						if (best == null || (bestBitrate < bitrate)) {
-							bestBitrate = bitrate;
-							best = (JsonObject) element;
-						}
-					}
-
-					if (best == null) {
-						best = helper.set(variants).get(0).object();
-					}
-
-					helper.set(best);
-					video.url = url;
-					video.contentType = helper.string("content_type");
-
-					// Add video to the corresponding list
-					if (type.equals("video")) {
-						JsonElement md = obj.get("mediaStats");
-						if (md != null) {
-							video.viewCount = helper.set(md).next("viewCount").integer();
-						} else {
-							video.viewCount = -1;
-						}
-
-						videos.add(video);
-					} else {
-						video.viewCount = -1;
-						animatedGif.add(video);
-					}
-				}
-			}
-		}
-
-		// Replace "t.co" URLs with original urls.
 		JsonObject entities = legacy.get("entities").getAsJsonObject();
 		if (entities != null) {
-			tweet.entities = TweetEntities.fromJson(entities);
-
-			for (Url url : tweet.entities.urls) {
-				if (url.expandedUrl != null) fullText = fullText.replace(url.url, url.expandedUrl);
-			}
+			tweet.entities = TweetEntities.fromJson(entities, helper);
 		}
-
-		fullText = fullText.trim();
 
 		// TODO: Add support for edits
 		// TODO: Add support for 'focus' rectangles in tweet media (This might be used to crop pictures.)
@@ -275,11 +151,7 @@ public class Tweet extends Entry {
 		tweet.liked = helper.bool("favorited", false);
 		tweet.retweeted = helper.bool("retweeted", false);
 
-		tweet.media = GsonUtil.createObject(gson, UserMedia.Media.class);
-		tweet.media.photos = photos.toArray(new UserMedia.Photo[0]);
-		tweet.media.videos = videos.toArray(new UserMedia.Video[0]);
-		tweet.media.animatedGif = animatedGif.toArray(new UserMedia.Video[0]);
-		tweet.text = fullText;
+		tweet.text = rawText;
 		tweet.rawText = rawText;
 
 		tweet.user = User.fromJson(gson, helper.query(rootObject, "core", "user_results", "result").getAsJsonObject(), helper);
@@ -323,160 +195,44 @@ public class Tweet extends Entry {
 		public List<Url> urls;
 		public List<Hashtag> hashtags;
 
-		public static TweetEntities fromJson(JsonObject legacy_entities) {
-			JsonHelper helper = new JsonHelper(legacy_entities);
-
+		public static TweetEntities fromJson(JsonObject legacy_entities, JsonHelper h) {
+			h.set(legacy_entities);
 			TweetEntities entities = new TweetEntities();
 
-			{
-				List<Url> urls = Collections.emptyList();
-
-				for (JsonElement elm : helper.next("urls").array()) {
-					if (!(elm instanceof JsonObject o)) {
-						continue;
-					}
-
-					if (urls == Collections.<Url>emptyList()) {
-						urls = new ArrayList<>();
-					}
-
-					Url url = Url.fromJson(o, helper);
-					urls.add(url);
+			entities.urls = Collections.emptyList();
+			if (h.has("urls"))
+				for (JsonElement elm : h.array("urls")) {
+					if (!(elm instanceof JsonObject o)) continue;
+					if (entities.urls.isEmpty()) entities.urls = new ArrayList<>();
+					entities.urls.add(Url.fromJson(o, h));
 				}
 
-				entities.urls = urls;
-			}
-
-			{
-				List<UserMention> userMentions = Collections.emptyList();
-
-				for (JsonElement elm : helper.set(legacy_entities).next("user_mentions").array()) {
-					if (userMentions == Collections.<UserMention>emptyList()) {
-						userMentions = new ArrayList<>();
-					}
-
-					UserMention mention = UserMention.fromJson(elm, helper);
-
-					userMentions.add(mention);
+			entities.userMentions = Collections.emptyList();
+			if (h.set(legacy_entities).has("user_mentions"))
+				for (JsonElement elm : h.array("user_mentions")) {
+					if (entities.userMentions.isEmpty()) entities.userMentions = new ArrayList<>();
+					entities.userMentions.add(UserMention.fromJson(elm, h));
 				}
 
-				entities.userMentions = userMentions;
-			}
+			entities.hashtags = Collections.emptyList();
+			if (h.set(legacy_entities).has("hashtags"))
+				for (JsonElement elm : h.array("hashtags")) {
+					if (entities.hashtags.isEmpty()) entities.hashtags = new ArrayList<>();
 
-			{
-				List<Hashtag> hashtags = Collections.emptyList();
-
-				for (JsonElement elm : helper.set(legacy_entities).next("hashtags").array()) {
-					if (hashtags == Collections.<Hashtag>emptyList()) {
-						hashtags = new ArrayList<>();
-					}
-
-					helper.set(elm);
-					Hashtag hashtag = new Hashtag();
-					hashtag.range = Range.fromArray(helper.array("indices"));
-					hashtag.text = helper.string("text");
-
-					hashtags.add(hashtag);
+					h.set(elm);
+					entities.hashtags.add(new Hashtag(
+						h.string("text"),
+						Range.fromArray(h.array("indices"))
+					));
 				}
 
-				entities.hashtags = hashtags;
-			}
-
-			b:
-			{
-				List<UserMedia.MediaEntity> media = Collections.emptyList();
-				entities.media = media;
-				if (!helper.set(legacy_entities).has("media")) break b;
-
-				for (JsonElement elm : helper.next("media").array()) {
-					if (media == Collections.<UserMedia.MediaEntity>emptyList()) {
-						media = new ArrayList<>();
-					}
-
+			entities.media = Collections.emptyList();
+			if (h.set(legacy_entities).has("media"))
+				for (JsonElement elm : h.array("media")) {
 					if (!(elm instanceof JsonObject object)) continue;
-
-					UserMedia.MediaEntity e = new UserMedia.MediaEntity();
-					e.url = Url.fromJson(object, helper);
-					helper.set(object);
-					e.id = helper.string("id_str");
-					e.mediaKey = helper.string("media_key", null);
-					e.mediaUrlHttps = helper.string("media_url_https");
-					e.type = helper.string("type");
-
-					List<UserMedia.PhotoSize> sizesL = new ArrayList<>();
-
-					{
-						helper.next("original_info");
-
-						UserMedia.OriginalInfo originalInfo = new UserMedia.OriginalInfo();
-						originalInfo.width = helper.integer("width");
-						originalInfo.height = helper.integer("height");
-
-						if (helper.has("focus_rects")) {
-							List<UserMedia.FocusRect> focusRects = new ArrayList<>();
-
-							for (JsonElement r : helper.array("focus_rects")) {
-								if (!(r instanceof JsonObject v)) continue;
-
-								helper.set(v);
-								UserMedia.FocusRect rect = new UserMedia.FocusRect();
-								rect.x = helper.integer("x");
-								rect.y = helper.integer("y");
-								rect.width = helper.integer("w");
-								rect.height = helper.integer("h");
-								focusRects.add(rect);
-							}
-
-							originalInfo.focusRects = focusRects.toArray(new UserMedia.FocusRect[0]);
-						} else {
-							originalInfo.focusRects = new UserMedia.FocusRect[0];
-						}
-
-						e.originalInfo = originalInfo;
-					}
-
-					helper.set(object);
-					JsonObject sizes = helper.object("sizes");
-					for (Map.Entry<String, JsonElement> o : sizes.entrySet()) {
-						UserMedia.PhotoSize s = new UserMedia.PhotoSize();
-						s.name = o.getKey();
-						helper.set(o.getValue());
-						s.width = helper.integer("w");
-						s.height = helper.integer("h");
-						s.resize = helper.string("resize", "fit");
-						sizesL.add(s);
-					}
-
-					helper.set(object);
-					if (helper.has("video_info")) {
-						helper.next("video_info");
-						UserMedia.VideoInfo videoInfo = new UserMedia.VideoInfo();
-
-						videoInfo.aspectRatio = helper.intArray("aspect_ratio");
-						videoInfo.durationMillis = helper.integer("duration_millis", -1);
-
-						List<UserMedia.Variant> variants = new ArrayList<>();
-						for (JsonElement variant : helper.array("variants")) {
-							helper.set(variant);
-
-							UserMedia.Variant v = new UserMedia.Variant();
-							v.bitrate = helper.integer("bitrate", 0);
-							v.contentType = helper.string("content_type");
-							v.url = helper.string("url");
-							variants.add(v);
-						}
-						videoInfo.variants = variants.toArray(new UserMedia.Variant[0]);
-
-						e.videoInfo = videoInfo;
-					}
-
-					e.sizes = sizesL.toArray(new UserMedia.PhotoSize[0]);
-
-					media.add(e);
+					if (entities.media.isEmpty()) entities.media = new ArrayList<>();
+					entities.media.add(UserMedia.MediaEntity.fromJson(object, h));
 				}
-
-				entities.media = media;
-			}
 
 			return entities;
 		}
