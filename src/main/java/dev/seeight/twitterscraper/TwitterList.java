@@ -22,13 +22,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.seeight.twitterscraper.impl.Entry;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TwitterList {
+public class TwitterList extends Entry {
 	public long createdAt;
 	public MediaInfo customBannerMedia;
 	public MediaResult customBannerMediaResults;
@@ -36,6 +37,10 @@ public class TwitterList {
 	public MediaResult defaultBannerMediaResults;
 	public String description;
 	public boolean following;
+	/**
+	 * @deprecated This is usually wrong. Use {@link #idStr} instead.
+	 */
+	@Deprecated
 	public String id;
 	public String idStr;
 	public boolean isMember;
@@ -85,10 +90,10 @@ public class TwitterList {
 		s.pinning = h.bool("pinning");
 		s.subscriberCount = h.integer("subscriber_count");
 
-		s.customBannerMedia = MediaInfo.fromJson(h.set(root).next("custom_banner_media").object("media_info"), h);
-		s.customBannerMediaResults = MediaResult.fromJson(h.set(root).next("custom_banner_media_results").object("result"), h);
-		s.defaultBannerMedia = MediaInfo.fromJson(h.set(root).next("default_banner_media").object("media_info"), h);
-		s.defaultBannerMediaResults = MediaResult.fromJson(h.set(root).next("default_banner_media_results").object("result"), h);
+		s.customBannerMedia = h.set(root).has("custom_banner_media") ? MediaInfo.fromJson(h.next("custom_banner_media").object("media_info"), h) : null;
+		s.customBannerMediaResults = h.set(root).has("custom_banner_media_results") ? MediaResult.fromJson(h.next("custom_banner_media_results").object("result"), h) : null;
+		s.defaultBannerMedia = h.set(root).has("default_banner_media") ? MediaInfo.fromJson(h.next("default_banner_media").object("media_info"), h) : null;
+		s.defaultBannerMediaResults = h.set(root).has("default_banner_media_results") ? MediaResult.fromJson(h.next("default_banner_media_results").object("result"), h) : null;
 
 		s.author = User.fromJson(gson, h.set(root).next("user_results").object("result"), h);
 		return s;
