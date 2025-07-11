@@ -20,7 +20,7 @@ package dev.seeight.twitterscraper.impl;
 
 import com.google.gson.JsonArray;
 
-public class Range {
+public class Range implements Cloneable {
 	public int start;
 	public int end;
 
@@ -29,5 +29,14 @@ public class Range {
 		r.start = array.get(0).getAsInt();
 		r.end = array.get(1).getAsInt();
 		return r;
+	}
+
+	@Override
+	public Range clone() {
+		try {
+			return (Range) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new AssertionError();
+		}
 	}
 }
