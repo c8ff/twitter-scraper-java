@@ -47,9 +47,6 @@ public class ConfigUploadFinalize implements IConfigJsonTree<UploadedMedia> {
 
 	@Override
 	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		// ?command=FINALIZE&media_id=1896238264320737280&original_md5=0043accd337d8ecb40a9f9f9df0df244
-
-		// allowAsync
 		builder
 			.addParameter("command", this.command.name())
 			.addParameter("media_id", this.mediaId)

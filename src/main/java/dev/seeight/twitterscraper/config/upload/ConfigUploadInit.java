@@ -51,9 +51,6 @@ public class ConfigUploadInit implements IConfigJsonTree<PartiallyUploadedMedia>
 
 	@Override
 	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		// ?command=INIT&total_bytes=46309&media_type=image/jpeg&media_category=tweet_image
-		// ?command=INIT&total_bytes=4202 &media_type=image/jpeg&media_category=tweet_image
-
 		return builder
 			.addParameter("command", this.command.name())
 			.addParameter("total_bytes", String.valueOf(this.totalBytes))
