@@ -16,16 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.seeight.twitterscraper.impl.user;
+package dev.seeight.twitterscraper.impl.api2;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import dev.seeight.twitterscraper.impl.Entry;
+import dev.seeight.twitterscraper.impl.Url;
 import dev.seeight.twitterscraper.util.JsonHelper;
+import dev.seeight.util.ListUtil;
 
 import javax.annotation.processing.Generated;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class LegacyUser {
+public class LegacyUser extends Entry {
 	public int id;
 	public String id_str;
 	public String name;
@@ -88,8 +93,9 @@ public class LegacyUser {
 	public boolean require_some_consent;
 
 	@Generated("dev.seeight.GenerateJsonParser")
-	public static LegacyUser fromJson(Gson gson, JsonHelper h, JsonObject obj) {
+	public static LegacyUser fromJson(JsonHelper h, JsonObject obj) {
 		h.set(obj);
+
 		var inst = new LegacyUser();
 		inst.id = h.integer("id");
 		inst.id_str = h.string("id_str");
@@ -98,13 +104,13 @@ public class LegacyUser {
 		inst.location = h.string("location");
 		inst.description = h.string("description");
 		inst.url = h.string("url");
-		inst.entities = Entities.fromJson(gson, h, h.object("entities"));
+		inst.entities = Entities.fromJson(h, h.object("entities"));
 		h.set(obj);
 		inst.followers_count = h.integer("followers_count");
-		inst.fast_followers_count = h.integer("fast_followers_count");
-		inst.normal_followers_count = h.integer("normal_followers_count");
+		inst.fast_followers_count = h.integer("fast_followers_count", -1);
+		inst.normal_followers_count = h.integer("normal_followers_count", -1);
 		inst.friends_count = h.integer("friends_count");
-		inst.listed_count = h.integer("listed_count");
+		inst.listed_count = h.integer("listed_count", -1);
 		inst.created_at = h.string("created_at");
 		inst.favourites_count = h.integer("favourites_count");
 		inst.utc_offset = h.string("utc_offset");
@@ -112,7 +118,7 @@ public class LegacyUser {
 		inst.geo_enabled = h.bool("geo_enabled");
 		inst.verified = h.bool("verified");
 		inst.statuses_count = h.integer("statuses_count");
-		inst.media_count = h.integer("media_count");
+		inst.media_count = h.integer("media_count", -1);
 		inst.lang = h.string("lang");
 		inst.contributors_enabled = h.bool("contributors_enabled");
 		inst.is_translator = h.bool("is_translator");
@@ -129,30 +135,34 @@ public class LegacyUser {
 		inst.profile_sidebar_fill_color = h.string("profile_sidebar_fill_color");
 		inst.profile_text_color = h.string("profile_text_color");
 		inst.profile_use_background_image = h.bool("profile_use_background_image");
-		inst.has_extended_profile = h.bool("has_extended_profile");
+		inst.has_extended_profile = h.bool("has_extended_profile", false);
 		inst.default_profile = h.bool("default_profile");
 		inst.default_profile_image = h.bool("default_profile_image");
-		inst.pinned_tweet_ids = h.intArray("pinned_tweet_ids");
-		inst.pinned_tweet_ids_str = h.next("pinned_tweet_ids_str").stringList();
+		inst.pinned_tweet_ids = h.intArray("pinned_tweet_ids", new int[0]);
+		try {
+			inst.pinned_tweet_ids_str = h.stringList("pinned_tweet_ids_str", Collections.emptyList());
+		} catch (Exception e) {
+			inst.pinned_tweet_ids_str = Collections.emptyList();
+		}
 		h.set(obj);
-		inst.has_custom_timelines = h.bool("has_custom_timelines");
-		inst.can_dm = h.bool("can_dm");
-		inst.can_media_tag = h.bool("can_media_tag");
-		inst.following = h.bool("following");
+		inst.has_custom_timelines = h.bool("has_custom_timelines", false);
+		inst.can_dm = h.bool("can_dm", false);
+		inst.can_media_tag = h.bool("can_media_tag", false);
+		inst.following = h.bool("following", false);
 		inst.follow_request_sent = h.bool("follow_request_sent");
 		inst.notifications = h.bool("notifications");
-		inst.muting = h.bool("muting");
-		inst.blocking = h.bool("blocking");
-		inst.blocked_by = h.bool("blocked_by");
-		inst.want_retweets = h.bool("want_retweets");
-		inst.advertiser_account_type = h.string("advertiser_account_type");
-		inst.profile_interstitial_type = h.string("profile_interstitial_type");
-		inst.business_profile_state = h.string("business_profile_state");
-		inst.translator_type = h.string("translator_type");
-		inst.followed_by = h.bool("followed_by");
-		inst.ext_profile_image_shape = h.string("ext_profile_image_shape");
+		inst.muting = h.bool("muting", false);
+		inst.blocking = h.bool("blocking", false);
+		inst.blocked_by = h.bool("blocked_by", false);
+		inst.want_retweets = h.bool("want_retweets", false);
+		inst.advertiser_account_type = h.string("advertiser_account_type", null);
+		inst.profile_interstitial_type = h.string("profile_interstitial_type", null);
+		inst.business_profile_state = h.string("business_profile_state", null);
+		inst.translator_type = h.string("translator_type", null);
+		inst.followed_by = h.bool("followed_by", false);
+		inst.ext_profile_image_shape = h.string("ext_profile_image_shape", null);
 		inst.ext_is_blue_verified = h.bool("ext_is_blue_verified");
-		inst.require_some_consent = h.bool("require_some_consent");
+		inst.require_some_consent = h.bool("require_some_consent", false);
 
 		return inst;
 	}
@@ -160,25 +170,42 @@ public class LegacyUser {
 	public static class Entities {
 		public Description description;
 
-		@Generated("dev.seeight.GenerateJsonParser")
-		public static Entities fromJson(Gson gson, JsonHelper h, JsonObject obj) {
+		public Entities() {
+		}
+
+		public Entities(Description description) {
+			this.description = description;
+		}
+
+		public static Entities fromJson(JsonHelper h, JsonObject obj) {
 			h.set(obj);
-			var inst = new Entities();
-			inst.description = Description.fromJson(gson, h, h.object("description"));
-			return inst;
+			return new Entities(Description.fromJson(h, h.object("description")));
 		}
 
 		public static class Description {
-			public List<String> urls;
+			public List<Url> urls;
 
-			@Generated("dev.seeight.GenerateJsonParser")
-			public static Description fromJson(Gson gson, JsonHelper h, JsonObject obj) {
-				h.set(obj);
-				var inst = new Description();
-				inst.urls = h.next("urls").stringList();
-				h.set(obj);
+			public Description() {
+			}
 
-				return inst;
+			public Description(List<Url> urls) {
+				this.urls = urls;
+			}
+
+			public static Description fromJson(JsonHelper h, JsonObject obj) {
+				h.set(obj);
+				h.next("urls");
+				var a = h.array();
+				if (a.isEmpty()) return new Description(new ArrayList<>());
+				var i = a.get(0);
+				if (i instanceof JsonPrimitive) {
+					return new Description(ListUtil.map(a, e -> {
+						var u = new Url();
+						u.url = e.getAsString();
+						return u;
+					}));
+				}
+				return new Description(ListUtil.map(a, e -> Url.fromJson(e, h)));
 			}
 		}
 	}

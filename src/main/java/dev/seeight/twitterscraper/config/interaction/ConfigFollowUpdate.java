@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
-import dev.seeight.twitterscraper.impl.user.LegacyUser;
+import dev.seeight.twitterscraper.impl.api2.LegacyUser;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -34,6 +34,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+@Deprecated
 public class ConfigFollowUpdate implements IConfigJsonTree<LegacyUser> {
 	private final String userId;
 	// a.k.a device
@@ -48,7 +49,7 @@ public class ConfigFollowUpdate implements IConfigJsonTree<LegacyUser> {
 
 	@Override
 	public LegacyUser fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
-		return LegacyUser.fromJson(gson, new JsonHelper(element), (JsonObject) element);
+		return LegacyUser.fromJson(new JsonHelper(element), (JsonObject) element);
 	}
 
 	@Override
