@@ -81,6 +81,8 @@ public class Tweet extends Entry {
 
 	public NoteTweet noteTweet;
 
+	public Card card;
+
 	// TODO: add support for limitedActionResults
 
 	public static @NotNull Tweet fromJson(Gson gson, JsonObject rootObject, JsonHelper helper) {
@@ -108,6 +110,12 @@ public class Tweet extends Entry {
 		}
 
 		helper.set(rootObject);
+
+		if (helper.has("card")) {
+			tweet.card = Card.fromJson(helper, helper.object("card"));
+			helper.set(rootObject);
+		}
+
 		tweet.id = rootObject.get("rest_id").getAsString();
 		tweet.views = helper.set(rootObject).next("views").stringOrDefault("count", null);
 		tweet.publishDevice = helper.set(rootObject).string("source");
