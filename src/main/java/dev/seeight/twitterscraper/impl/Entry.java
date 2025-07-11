@@ -101,6 +101,10 @@ public class Entry {
 		String entryId = h.string("entryId");
 		String sortIndex = h.stringOrDefault("sortIndex", null);
 
+		if (entryId.startsWith("tweetdetailrelatedtweets")) {
+			return null;
+		}
+
 		if (!h.has("content")) return null;
 		h.next("content");
 
