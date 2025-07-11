@@ -21,12 +21,12 @@ package dev.seeight.twitterscraper.config;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import dev.seeight.twitterscraper.IConfigJsonTree;
+import dev.seeight.twitterscraper.Timeline;
 import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
-import dev.seeight.twitterscraper.impl.item.ItemList;
+import dev.seeight.twitterscraper.impl.inst.Instruction;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +34,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 
-public class ConfigFollowers implements IConfigJsonTree<ItemList> {
+public class ConfigFollowers implements IConfigJsonTree<ConfigFollowers.FollowersTimeline> {
 	@SerializedName("userId")
 	public final @NotNull String userId;
 	@SerializedName("count")
@@ -69,30 +70,26 @@ public class ConfigFollowers implements IConfigJsonTree<ItemList> {
 	}
 
 	@Override
-	public ItemList fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
-		JsonArray entries = null;
+	public FollowersTimeline fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+		var m = new FollowersTimeline();
 
 		JsonHelper h = new JsonHelper(element);
 		h.next("data")
 			.next("user")
 			.next("result")
-			.next("timeline")
-			.next("timeline")
-			.next("instructions");
+			.next("timeline");
 
-		for (JsonElement _0 : h.array()) {
-			if (!(_0 instanceof JsonObject o)) continue;
-
-			if (h.set(o).stringOrDefault("type", "").equals("TimelineAddEntries")) {
-				entries = h.next("entries").array();
-				break;
-			}
+		if (!h.has("timeline")) {
+			m.instructions = Collections.emptyList();
+			return m;
 		}
+		h.next("timeline");
 
-		if (entries == null) {
-			throw new IllegalStateException("No 'TimelineAddEntries' instruction found.");
-		}
+		JsonArray instructions = h.array("instructions");
+		m.instructions = Instruction.fromInstructionsJson(gson, h, instructions);
+		return m;
+	}
 
-		return ItemList.fromJson(gson, entries);
+	public static class FollowersTimeline extends Timeline {
 	}
 }

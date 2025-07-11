@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
+@Deprecated
 public class ItemList extends ArrayList<Entry> {
 	@Nullable
 	public <T extends Entry> T findLast(@NotNull Class<T> c) {
