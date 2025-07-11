@@ -87,7 +87,7 @@ public class Entry {
 				return parseTimelineItem(entryId, sortIndex, gson, h, h.object());
 			}
 			case "TimelineTimelineModule" -> {
-				Entry e = parseTimelineModule(gson, h, h.object());
+				Entry e = TimelineModule.fromJson(gson, h, h.object());
 				e.entryId = entryId;
 				e.sortIndex = sortIndex;
 				return e;
@@ -105,25 +105,4 @@ public class Entry {
 		}
 	}
 
-	private static Entry parseTimelineModule(Gson gson, JsonHelper h, JsonObject object) {
-		JsonArray items = h.set(object).next("items").array();
-
-		List<Entry> entries = new ArrayList<>();
-		for (JsonElement item : items) {
-			if (!(item instanceof JsonObject io)) continue;
-
-			h.set(io);
-			String entryId = h.string("entryId");
-			JsonObject item0 = h.object("item");
-			var e = parseTimelineItem(entryId, null, gson, h, item0);
-			if (e != null) {
-				entries.add(e);
-			}
-		}
-
-		TimelineModule t = new TimelineModule();
-		t.items = entries;
-		t.displayType = h.set(object).string("displayType", null);
-		return t;
-	}
 }
