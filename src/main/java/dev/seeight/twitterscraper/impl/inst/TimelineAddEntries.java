@@ -29,9 +29,7 @@ import dev.seeight.twitterscraper.util.JsonHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TimelineAddEntries extends Instruction {
-	public List<Entry> entries;
-
+public class TimelineAddEntries extends EntriesInstruction {
 	public static TimelineAddEntries fromJson(Gson gson, JsonHelper h, JsonElement element) {
 		h.set(element);
 
