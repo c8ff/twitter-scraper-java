@@ -45,29 +45,24 @@ public class Instruction {
 
 	public static Instruction fromInstructionJson(Gson gson, JsonObject instruction, JsonHelper h) {
 		String type = h.set(instruction).string("type");
+		Instruction inst;
 		switch (type) {
-			case "TimelineAddEntries" -> {
-				return TimelineAddEntries.fromJson(gson, h, instruction);
-			}
-			case "TimelineReplaceEntry" -> {
-				return TimelineReplaceEntry.fromJson(gson, h, instruction);
-			}
-			case "TimelineTerminateTimeline" -> {
-				return TimelineTerminateTimeline.fromJson(h, instruction);
-			}
-			case "TimelinePinEntry" -> {
-				return TimelinePinEntry.fromJson(gson, h, instruction);
-			}
-			case "TimelineAddToModule" -> {
-				return TimelineAddToModule.fromJson(gson, h, instruction);
-			}
-			case "TimelineClearCache" -> {
-				return new TimelineClearCache();
-			}
+			case "TimelineAddEntries" -> inst = TimelineAddEntries.fromJson(gson, h, instruction);
+			case "TimelineReplaceEntry" -> inst = TimelineReplaceEntry.fromJson(gson, h, instruction);
+			case "TimelineTerminateTimeline" -> inst = TimelineTerminateTimeline.fromJson(h, instruction);
+			case "TimelinePinEntry" -> inst = TimelinePinEntry.fromJson(gson, h, instruction);
+			case "TimelineAddToModule" -> inst = TimelineAddToModule.fromJson(gson, h, instruction);
+			case "TimelineClearCache" -> inst = new TimelineClearCache();
+			case "TimelineClearEntriesUnreadState" -> inst = new TimelineClearEntriesUnreadState();
+			case "TimelineMarkEntriesUnreadGreaterThanSortIndex" ->
+				inst = TimelineMarkEntriesUnreadGreaterThanSortIndex.fromJson(gson, h, instruction);
 			default -> {
 				System.out.println("dropping unknown type: " + type);
 				return null;
 			}
 		}
+
+		inst.type = type;
+		return inst;
 	}
 }
