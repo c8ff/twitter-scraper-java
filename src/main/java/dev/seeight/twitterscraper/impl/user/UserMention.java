@@ -20,13 +20,18 @@ package dev.seeight.twitterscraper.impl.user;
 
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.impl.Range;
+import dev.seeight.twitterscraper.impl.TextEntity;
 import dev.seeight.twitterscraper.util.JsonHelper;
 
-public class UserMention {
+public class UserMention extends TextEntity {
 	public String id;
 	public String name;
 	public String screenName;
-	public Range range;
+
+	@Override
+	public Type getType() {
+		return Type.USER_MENTION;
+	}
 
 	public static UserMention fromJson(JsonElement element, JsonHelper h) {
 		h.set(element);

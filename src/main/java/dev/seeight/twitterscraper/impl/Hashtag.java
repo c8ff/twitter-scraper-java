@@ -18,7 +18,19 @@
 
 package dev.seeight.twitterscraper.impl;
 
-public class Hashtag {
-	public Range range;
+public class Hashtag extends TextEntity {
 	public String text;
+
+	public Hashtag() {
+	}
+
+	public Hashtag(String text, Range range) {
+		this.text = text;
+		this.range = range;
+	}
+
+	@Override
+	public Type getType() {
+		return Type.HASHTAG;
+	}
 }

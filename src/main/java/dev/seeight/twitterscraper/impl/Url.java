@@ -22,11 +22,15 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.jetbrains.annotations.Nullable;
 
-public class Url {
+public class Url extends TextEntity implements Cloneable {
 	public @Nullable String displayUrl;
 	public @Nullable String expandedUrl;
 	public String url;
-	public Range range;
+
+	@Override
+	public Type getType() {
+		return Type.URL;
+	}
 
 	public static Url fromJson(JsonElement element, JsonHelper h) {
 		h.set(element);
@@ -39,5 +43,16 @@ public class Url {
 		url.range = Range.fromArray(h.array("indices"));
 
 		return url;
+	}
+
+	@Override
+	public Url clone() {
+		try {
+			Url clone = (Url) super.clone();
+			clone.range = this.range.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			throw new AssertionError();
+		}
 	}
 }
