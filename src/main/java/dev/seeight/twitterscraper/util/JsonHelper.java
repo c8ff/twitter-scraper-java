@@ -18,9 +18,15 @@
 
 package dev.seeight.twitterscraper.util;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import dev.seeight.twitterscraper.JsonFormatException;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -373,6 +379,19 @@ public class JsonHelper {
 		return List.of(this.stringArray());
 	}
 
+	public List<String> stringList(String name, List<String> defaultValue) {
+		var v = this.getValueNullable(name);
+		if (v == null) return defaultValue;
+		var arr = v.getAsJsonArray();
+		if (arr.isEmpty()) return Collections.emptyList();
+
+		var z = new ArrayList<String>(arr.size());
+		for (int i = 0; i < arr.size(); i++) {
+			z.set(i, arr.get(i).getAsString());
+		}
+		return z;
+	}
+
 	/**
 	 * Converts the current element into a list of {@link T} objects.
 	 *
@@ -399,6 +418,12 @@ public class JsonHelper {
 
 	public int[] intArray(String name) {
 		return this.intArray(this.array(name));
+	}
+
+	public int[] intArray(String name, int[] defaultValue) {
+		JsonElement v = this.getValueNullable(name);
+		if (v == null) return defaultValue;
+		return this.intArray(v.getAsJsonArray());
 	}
 
 	private int[] intArray(JsonArray array) {
