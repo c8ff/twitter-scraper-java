@@ -35,7 +35,7 @@ public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 	public final String rawQuery;
 	public int count = 20;
 	public final String cursor;
-	public String querySource = "typed_query";
+	public String querySource = QuerySource.typed_query.name();
 	public ProductType product = ProductType.Top;
 
 	public ConfigSearchTimeline(String rawQuery, String cursor) {
@@ -59,6 +59,14 @@ public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 	@Override
 	public SearchByRawQuery fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
 		return SearchByRawQuery.fromJson(gson, new JsonHelper(element), element);
+	}
+
+	public enum QuerySource {
+		typed_query,
+		/**
+		 * This is used on the 'quotes' tab a tweet interactions UI.
+		 */
+		tdqt
 	}
 
 	public enum ProductType {
