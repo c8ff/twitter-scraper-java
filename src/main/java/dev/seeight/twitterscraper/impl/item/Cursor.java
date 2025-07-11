@@ -28,29 +28,46 @@ public class Cursor extends Entry {
 	public CursorType cursorType;
 	public @Nullable DisplayTreatment displayTreatment;
 
+	public Cursor() {
+	}
+
+	public Cursor(String entityId, String sortIndex, String value, CursorType cursorType, @Nullable DisplayTreatment displayTreatment) {
+		this.entryId = entityId;
+		this.sortIndex = sortIndex;
+		this.value = value;
+		this.cursorType = cursorType;
+		this.displayTreatment = displayTreatment;
+	}
+
+	public Cursor(String value, CursorType cursorType, @Nullable DisplayTreatment displayTreatment) {
+		this.value = value;
+		this.cursorType = cursorType;
+		this.displayTreatment = displayTreatment;
+	}
+
 	public static Cursor fromEntryContent(JsonObject content, JsonHelper h) {
 		h.set(content);
-
-		Cursor s = new Cursor();
-		s.value = h.string("value");
-		s.cursorType = CursorType.fromString(h.string("cursorType"));
-
-		if (h.has("displayTreatment")) {
-			h.next("displayTreatment");
-
-			DisplayTreatment d = new DisplayTreatment();
-			d.actionText = h.string("actionText");
-			d.labelText = h.string("labelText", null);
-
-			s.displayTreatment = d;
-		}
-
-		return s;
+		return new Cursor(
+			h.string("value"),
+			CursorType.fromString(h.string("cursorType")),
+			!h.has("displayTreatment") ? null : new DisplayTreatment(
+				h.next("displayTreatment").string("actionText"),
+				h.string("labelText", null)
+			)
+		);
 	}
 
 	public static class DisplayTreatment {
 		public String actionText;
 		public String labelText;
+
+		public DisplayTreatment() {
+		}
+
+		public DisplayTreatment(String actionText, String labelText) {
+			this.actionText = actionText;
+			this.labelText = labelText;
+		}
 	}
 
 	public enum CursorType {
