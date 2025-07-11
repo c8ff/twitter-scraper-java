@@ -19,16 +19,14 @@
 package dev.seeight.twitterscraper.impl;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.seeight.twitterscraper.TwitterList;
 import dev.seeight.twitterscraper.impl.item.Cursor;
 import dev.seeight.twitterscraper.impl.item.TimelineModule;
+import dev.seeight.twitterscraper.impl.item.NotificationF;
+import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // TODO: Separate entry from items. (An entry is a wrapper, can contain an item, or various items.) (an item is a user, tweet, etc.)
 public class Entry {
@@ -45,29 +43,55 @@ public class Entry {
 		JsonObject itemContent = h.object();
 		String itemType = h.string("itemType");
 
-		if (itemType.equals("TimelineTweet")) {
-			// Omit ads.
-			if (entryId.contains("promoted-tweet") || h.has("promotedMetadata")) {
+		switch (itemType) {
+			case "TimelineNotification" -> {
+				var e = NotificationF.fromJson(h, itemContent);
+				e.entryId = entryId;
+				e.sortIndex = sortIndex;
+				return e;
+			}
+			case "TimelineTweet" -> {
+				// Omit ads.
+				if (entryId.contains("promoted-tweet") || h.has("promotedMetadata")) {
+					return null;
+				}
+
+				h.next("tweet_results");
+				if (!h.has("result"))
+					return null;
+
+				Tweet e = Tweet.fromJson(gson, h.object("result"), h);
+				e._tweetDisplayType = h.set(itemContent).string("tweetDisplayType", "Tweet");
+				e.entryId = entryId;
+				e.sortIndex = sortIndex;
+				return e;
+			}
+			case "TimelineTimelineCursor" -> {
+				Cursor e = Cursor.fromEntryContent(itemContent, h);
+				e.entryId = entryId;
+				e.sortIndex = sortIndex;
+				return e;
+			}
+			case "TimelineTwitterList" -> {
+				TwitterList e = TwitterList.fromJson(gson, h.object("list"), h);
+				e.entryId = entryId;
+				e.sortIndex = sortIndex;
+				return e;
+			}
+			case "TimelineUser" -> {
+				h.next("user_results");
+				if (!h.has("result"))
+					return null;
+
+				var e = User.fromJson(gson, h.object("result"), h);
+				e.entryId = entryId;
+				e.sortIndex = sortIndex;
+				return e;
+			}
+			default -> {
+				System.out.println("Entry: unknown item type: " + itemType + ", entryId: " + entryId);
 				return null;
 			}
-
-			h.next("tweet_results");
-			if (!h.has("result"))
-				return null;
-
-			Tweet e = Tweet.fromJson(gson, h.object("result"), h);
-			e._tweetDisplayType = h.set(itemContent).string("tweetDisplayType", "Tweet");
-			e.entryId = entryId;
-			e.sortIndex = sortIndex;
-			return e;
-		} else if (itemType.equals("TimelineTimelineCursor")) {
-			Cursor e = Cursor.fromEntryContent(itemContent, h);
-			e.entryId = entryId;
-			e.sortIndex = sortIndex;
-			return e;
-		} else {
-			System.out.println("Entry: unknown item type: " + itemType + ", entryId: " + entryId);
-			return null;
 		}
 	}
 
