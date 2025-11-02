@@ -50,6 +50,8 @@ public class NotificationF extends Entry {
 
             public static class Ref {
                 public String type;
+                public String url;
+                public String urlType;
                 public UserResults userResults;
 
                 public static class UserResults {
@@ -69,7 +71,9 @@ public class NotificationF extends Entry {
                     var o = new Ref();
                     h.set(z);
                     o.type = h.string("type", null);
-                    o.userResults = UserResults.fromJson(h, h.object("user_results"));
+                    o.url = h.string("url", null);
+                    o.urlType = h.string("urlType", null);
+                    if (h.has("user_results")) o.userResults = UserResults.fromJson(h, h.object("user_results"));
                     h.set(z);
                     return o;
                 }
@@ -80,7 +84,7 @@ public class NotificationF extends Entry {
                 h.set(z);
                 o.fromIndex = h.integer("fromIndex", -1);
                 o.toIndex = h.integer("toIndex", -1);
-                o.ref = Ref.fromJson(h, h.object("ref"));
+                o.ref = h.has("ref") ? Ref.fromJson(h, h.object("ref")) : null;
                 h.set(z);
                 return o;
             }
