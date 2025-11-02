@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.TwitterApi;
+import dev.seeight.twitterscraper.impl.entry.TweetTombstone;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
 import dev.seeight.twitterscraper.impl.user.UserMention;
@@ -64,8 +65,8 @@ public class Tweet extends Entry {
 	public boolean retweeted;
 	public boolean bookmarked;
 
-	public Tweet retweetTweet;
-	public Tweet quotedTweet;
+	public Entry retweetTweet;
+	public Entry quotedTweet;
 
 	public boolean restricted;
 
@@ -95,15 +96,7 @@ public class Tweet extends Entry {
 			rootObject = rootObject.getAsJsonObject("tweet");
 			legacy = rootObject.getAsJsonObject("legacy");
 		} else if (helper.equals("__typename", "TweetTombstone")) {
-			// TODO: Handle this correctly.
-			tweet.user = new User();
-			tweet.user.name = "null";
-			tweet.user.screenName = "null";
-			tweet.id = "0";
-			tweet.bookmarked = false;
-			tweet.restricted = true;
-			tweet.text = "You're unable to view this tweet.";
-			return tweet;
+			throw new UnsupportedOperationException("TweetTombstone");
 		} else {
 			legacy = helper.object("legacy");
 		}
@@ -178,20 +171,29 @@ public class Tweet extends Entry {
 
 		JsonElement rt = legacy.get("retweeted_status_result");
 		if (rt instanceof JsonObject) {
-			JsonObject result = helper.set(rt).next("result").object();
-			tweet.retweetTweet = Tweet.fromJson(gson, result, helper, GsonUtil.createObject(gson, Tweet.class));
+            tweet.retweetTweet = parseResult(gson, helper, helper.set(rt).next("result").object());
 		}
 
 		JsonElement qs = rootObject.get("quoted_status_result");
 		if (qs instanceof JsonObject) {
 			if (helper.set(qs).has("result")) {
-				JsonObject result = helper.next("result").object();
-				tweet.quotedTweet = Tweet.fromJson(gson, result, helper, GsonUtil.createObject(gson, Tweet.class));
+				tweet.quotedTweet = parseResult(gson, helper, helper.next("result").object());
 			}
 		}
 
 		return tweet;
 	}
+
+    public static Entry parseResult(Gson gson, JsonHelper helper, JsonObject result) {
+        var typeName = helper.string("__typename");
+        if (typeName.equals("Tweet") || typeName.equals("TweetWithVisibilityResults")) {
+            return Tweet.fromJson(gson, result, helper);
+        } else if (typeName.equals("TweetTombstone")) {
+            return TweetTombstone.fromJson(helper, result);
+        } else {
+            throw new RuntimeException("Unsupported quote tweet type: " + typeName);
+        }
+    }
 
 	public static class TweetEntities {
 		public List<UserMedia.MediaEntity> media;

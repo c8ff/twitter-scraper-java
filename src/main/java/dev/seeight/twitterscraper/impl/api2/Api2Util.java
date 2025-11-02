@@ -142,17 +142,19 @@ public class Api2Util {
 
                         if (t.retweetedStatusId != null) {
                             var b = globalObjects.tweets.get(t.retweetedStatusId);
-                            c.retweetTweet = toTweet(b);
-                            c.retweetTweet.user = convertedUsers.get(b.userId);
-                            c.retweetTweet.entryId = "tweet-" + b.id;
-                            c.retweetTweet.sortIndex = entry.sortIndex;
+                            var e = toTweet(b);
+                            c.retweetTweet = e;
+                            e.user = convertedUsers.get(b.userId);
+                            e.entryId = "tweet-" + b.id;
+                            e.sortIndex = entry.sortIndex;
                         }
                         if (t.quotedStatusId != null) {
                             var b = globalObjects.tweets.get(t.quotedStatusId);
-                            c.quotedTweet = toTweet(b);
-                            c.quotedTweet.user = convertedUsers.get(b.userId);
-                            c.quotedTweet.entryId = "tweet-" + b.id;
-                            c.quotedTweet.sortIndex = entry.sortIndex;
+                            var e = toTweet(b);
+                            c.quotedTweet = e;
+                            e.user = convertedUsers.get(b.userId);
+                            e.entryId = "tweet-" + b.id;
+                            e.sortIndex = entry.sortIndex;
                         }
 
                         addEntries.entries.add(c);

@@ -21,6 +21,7 @@ package dev.seeight.twitterscraper.impl;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.TwitterList;
+import dev.seeight.twitterscraper.impl.entry.TweetTombstone;
 import dev.seeight.twitterscraper.impl.item.Cursor;
 import dev.seeight.twitterscraper.impl.item.TimelineModule;
 import dev.seeight.twitterscraper.impl.item.NotificationF;
@@ -60,7 +61,16 @@ public class Entry {
 				if (!h.has("result"))
 					return null;
 
-				Tweet e = Tweet.fromJson(gson, h.object("result"), h);
+                h.next("result");
+                var type = h.string("__typename");
+                if (type.equals("TweetTombstone")) {
+                    var e = TweetTombstone.fromJson(h, itemContent);
+                    e.entryId = entryId;
+                    e.sortIndex = sortIndex;
+                    return e;
+                }
+
+				Tweet e = Tweet.fromJson(gson, h.object(), h);
 				e._tweetDisplayType = h.set(itemContent).string("tweetDisplayType", "Tweet");
 				e.entryId = entryId;
 				e.sortIndex = sortIndex;
