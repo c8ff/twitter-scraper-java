@@ -65,7 +65,7 @@ public class User extends Entry {
 	public boolean isProtected;
 	public String verifiedType;
 
-	public String profileImageUrl;
+	public @Nullable String profileImageUrl;
 	public String profileBannerUrl;
 	public ProfileImageShape profileImageShape;
 
@@ -117,7 +117,7 @@ public class User extends Entry {
 			ref.birthdate = birthdate;
 		}
 
-		ref.profileImageUrl = h.set(obj).next("avatar").string("image_url");
+		ref.profileImageUrl = h.set(obj).next("avatar").string("image_url", null);
 
 		h.set(obj).next("core");
 
