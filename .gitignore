@@ -4,3 +4,5 @@
 /out/
 /src/main/java/dev/seeight/api/bsky/**
 /src/test/java/dev/seeight/api/bsky/**
+/src/test/java/dev/seeight/twitterscraper/test/g/
+/src/main/java/dev/seeight/xeno/tid/
