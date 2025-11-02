@@ -22,16 +22,14 @@ import com.google.gson.Gson;
 import dev.seeight.twitterscraper.IConfig;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterException;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.search.SearchAdaptiveResult;
 import dev.seeight.twitterscraper.impl.search.SearchResult;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.jetbrains.annotations.Range;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
@@ -60,27 +58,24 @@ public class ConfigSearch implements IConfig<SearchResult> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://twitter.com/i/api/2/search/adaptive.json";
-	}
-
-	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("q", this.query)
-			.addParameter("count", String.valueOf(this.count))
-			.addParameter("query_source", this.querySource)
-			.addParameter("requestContext", this.requestContext)
-			.addParameter("pc", String.valueOf(this.pc))
-			.addParameter("spelling_corrections", String.valueOf(this.spellingCorrections))
-			.addParameter("include_ext_edit_control", String.valueOf(this.includeExtEditControl))
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return HttpUrl.get("https://twitter.com/i/api/2/search/adaptive.json").newBuilder()
+			.addQueryParameter("q", this.query)
+			.addQueryParameter("count", String.valueOf(this.count))
+			.addQueryParameter("query_source", this.querySource)
+			.addQueryParameter("requestContext", this.requestContext)
+			.addQueryParameter("pc", String.valueOf(this.pc))
+			.addQueryParameter("spelling_corrections", String.valueOf(this.spellingCorrections))
+			.addQueryParameter("include_ext_edit_control", String.valueOf(this.includeExtEditControl))
 			.build();
 	}
 
 	@Override
-	public SearchResult resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
-		String responseStr = TwitterApi.executeString(client, request);
-		return SearchResult.fromSearchAdaptiveResult(gson, gson.fromJson(responseStr, SearchAdaptiveResult.class));
+	public SearchResult resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        try (var e = client.newCall(request).execute()) {
+            String responseStr = e.body().string();
+            return SearchResult.fromSearchAdaptiveResult(gson, gson.fromJson(responseStr, SearchAdaptiveResult.class));
+        }
 	}
 
 	public static Builder builder(String query) {

@@ -1,8 +1,6 @@
 package dev.seeight.twitterscraper.test.online;
 
 import dev.seeight.twitterscraper.IConfig;
-import dev.seeight.twitterscraper.Secret;
-import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.config.interaction.ConfigBlockCreate;
 import dev.seeight.twitterscraper.config.interaction.ConfigBlockDestroy;
 import dev.seeight.twitterscraper.config.timeline.*;
@@ -10,20 +8,17 @@ import dev.seeight.twitterscraper.config.user.ConfigListByRestId;
 import dev.seeight.twitterscraper.config.user.ConfigUserLikes;
 import dev.seeight.twitterscraper.config.user.ConfigUserMedia;
 import dev.seeight.twitterscraper.config.user.ConfigUserTweetsReplies;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import dev.seeight.twitterscraper.test.g.TestApiController;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
 
 public class TestTimelines {
 	protected <T> void scrapDefault(IConfig<T> config, Consumer<T> consumer) throws Exception {
-		TwitterApi api = TwitterApi.newTwitterApi();
-		Secret.defineFromFile(api);
-
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			consumer.accept(api.scrap(config, client));
-		}
+        TestApiController.insideContext((TestApiController.ContextConsumer<Void>) (api, client) -> {
+            consumer.accept(api.scrap(config, client));
+            return null;
+        });
 	}
 
 	@Test

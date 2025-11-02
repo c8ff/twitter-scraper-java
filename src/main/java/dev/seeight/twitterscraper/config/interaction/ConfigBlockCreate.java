@@ -22,15 +22,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import okhttp3.*;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -47,16 +44,13 @@ public class ConfigBlockCreate implements IConfigJsonTree<User> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://x.com/i/api/1.1/blocks/create.json";
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return HttpUrl.get("https://x.com/i/api/1.1/blocks/create.json");
 	}
 
 	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-		HttpPost req = new HttpPost(uri);
-		StringEntity entity = new StringEntity("user_id=" + userId);
-		req.setEntity(entity);
-		req.addHeader("content-type", "application/x-www-form-urlencoded");
-		return req;
+	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException {
+		return new Request.Builder()
+                .url(url).post(new FormBody.Builder().add("user_id", userId).build());
 	}
 }

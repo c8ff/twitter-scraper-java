@@ -23,13 +23,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.Timeline;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.inst.Instruction;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -43,25 +42,18 @@ public class ConfigListMembers implements IConfigJsonTree<ConfigListMembers.List
     }
 
     @Override
-    public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
         var v = new JsonObject();
         v.addProperty("listId", this.listId);
         v.addProperty("count", this.count);
         if (cursor != null) v.addProperty("cursor", this.cursor);
-        return builder
-                .addParameter("variables", v.toString())
-                .addParameter("features", gson.toJson(graphQL.get("ListMembers").features))
-                .build();
+        var op = api.getGraphQLOperation("ListMembers");
+        return op.getUrl(v.toString());
     }
 
     @Override
     public ListMembers fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
         return ListMembers.fromJson(gson, new JsonHelper(element), element.getAsJsonObject());
-    }
-
-    @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return graphQL.get("ListMembers").url;
     }
 
     public static class ListMembers extends Timeline {

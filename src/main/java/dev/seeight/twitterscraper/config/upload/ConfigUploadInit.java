@@ -21,17 +21,16 @@ package dev.seeight.twitterscraper.config.upload;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterException;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.upload.PartiallyUploadedMedia;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -52,9 +51,10 @@ public class ConfigUploadInit implements IConfigJsonTree<PartiallyUploadedMedia>
 	}
 
 	@Override
-	public PartiallyUploadedMedia resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
-		stripHeaders(request);
-		return IConfigJsonTree.super.resolve(client, request, gson);
+	public PartiallyUploadedMedia resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        var b = request.newBuilder();
+        stripHeaders(b);
+		return IConfigJsonTree.super.resolve(client, b.build(), gson);
 	}
 
 	@Override
@@ -63,35 +63,29 @@ public class ConfigUploadInit implements IConfigJsonTree<PartiallyUploadedMedia>
 	}
 
 	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-		return new HttpPost(uri);
+	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException {
+        return new Request.Builder().url(url).post(RequestBody.EMPTY);
 	}
 
 	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("command", this.command.name())
-			.addParameter("total_bytes", String.valueOf(this.totalBytes))
-			.addParameter("media_type", this.mediaType)
-			.addParameter("media_category", this.mediaCategory.str)
-			.build();
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return HttpUrl.get("https://upload.x.com/i/media/upload.json").newBuilder()
+                .addQueryParameter("command", this.command.name())
+                .addQueryParameter("total_bytes", String.valueOf(this.totalBytes))
+                .addQueryParameter("media_type", this.mediaType)
+                .addQueryParameter("media_category", this.mediaCategory.str).build();
 	}
 
-	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://upload.x.com/i/media/upload.json";
-	}
-
-	public static void stripHeaders(HttpUriRequestBase request) {
+	public static void stripHeaders(Request.Builder request) {
 		// request.removeHeaders("cookie");
-		request.removeHeaders("X-Client-Transaction-Id");
+		request.removeHeader("X-Client-Transaction-Id");
 		// request.removeHeaders("authorization");
-		request.removeHeaders("x-twitter-active-user");
-		request.removeHeaders("x-twitter-client-language");
-		request.removeHeaders("TE");
-		request.setHeader("Referer", "https://x.com/");
-		request.setHeader("Sec-Fetch-Dest", "empty");
-		request.setHeader("Sec-Fetch-Mode", "cors");
-		request.setHeader("Sec-Fetch-Site", "same-site");
+		request.removeHeader("x-twitter-active-user");
+		request.removeHeader("x-twitter-client-language");
+		request.removeHeader("TE");
+		request.header("Referer", "https://x.com/");
+		request.header("Sec-Fetch-Dest", "empty");
+		request.header("Sec-Fetch-Mode", "cors");
+		request.header("Sec-Fetch-Site", "same-site");
 	}
 }

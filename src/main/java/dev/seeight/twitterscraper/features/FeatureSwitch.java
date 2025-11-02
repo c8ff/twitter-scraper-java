@@ -16,33 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.seeight.twitterscraper.graphql;
+package dev.seeight.twitterscraper.features;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.gson.JsonElement;
 
-import java.util.Map;
-
-@Deprecated
-public interface GraphQLMap {
-	@NotNull
-	default Entry get(String queryId) {
-		Entry entry = this.getNullable(queryId);
-		if (entry == null) throw new IllegalStateException("Could not find graphql mapping for '" + queryId + "'.");
-		return entry;
-	}
-
-	@Nullable
-	Entry getNullable(String queryId);
-
-	class Root {
-		public Map<String, Entry> graphql;
-	}
-
-	class Entry {
-		public String url;
-		public String queryId;
-		public String method;
-		public Map<String, Boolean> features;
-	}
+public interface FeatureSwitch {
+	JsonElement getValue(String key);
 }

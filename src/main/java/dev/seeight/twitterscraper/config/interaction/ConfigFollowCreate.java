@@ -22,41 +22,52 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.api2.LegacyUser;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
 public class ConfigFollowCreate implements IConfigJsonTree<LegacyUser> {
-	private final String userId;
+    private final String userId;
 
-	public ConfigFollowCreate(String userId) {
-		this.userId = userId;
-	}
+    public ConfigFollowCreate(String userId) {
+        this.userId = userId;
+    }
 
-	@Override
-	public LegacyUser fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
-		return LegacyUser.fromJson(new JsonHelper(element), (JsonObject) element);
-	}
+    @Override
+    public LegacyUser fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
+        return LegacyUser.fromJson(new JsonHelper(element), (JsonObject) element);
+    }
 
-	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://x.com/i/api/1.1/friendships/create.json";
-	}
+    @Override
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return HttpUrl.get("https://x.com/i/api/1.1/friendships/create.json");
+    }
 
-	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-		HttpPost req = new HttpPost(uri);
-		StringEntity entity = new StringEntity("include_profile_interstitial_type=1&include_blocking=1&include_blocked_by=1&include_followed_by=1&include_want_retweets=1&include_mute_edge=1&include_can_dm=1&include_can_media_tag=1&include_ext_is_blue_verified=1&include_ext_verified_type=1&include_ext_profile_image_shape=1&skip_status=1&user_id=" + userId);
-		req.setEntity(entity);
-		req.addHeader("content-type", "application/x-www-form-urlencoded");
-		return req;
-	}
+    @Override
+    public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException {
+        return new Request.Builder().url(url).post(
+                new FormBody.Builder()
+                        .add("include_profile_interstitial_type", "1")
+                        .add("include_blocking", "1")
+                        .add("include_blocked_by", "1")
+                        .add("include_followed_by", "1")
+                        .add("include_want_retweets", "1")
+                        .add("include_mute_edge", "1")
+                        .add("include_can_dm", "1")
+                        .add("include_can_media_tag", "1")
+                        .add("include_ext_is_blue_verified", "1")
+                        .add("include_ext_verified_type", "1")
+                        .add("include_ext_profile_image_shape", "1")
+                        .add("skip_status", "1")
+                        .add("user_id", userId)
+                        .build()
+        );
+    }
 }

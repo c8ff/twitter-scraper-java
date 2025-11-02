@@ -20,15 +20,20 @@ package dev.seeight.twitterscraper.config.timeline;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
+import dev.seeight.twitterscraper.TwitterException;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.SearchByRawQuery;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
-import java.net.URI;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
@@ -44,16 +49,9 @@ public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("SearchTimeline").url;
-	}
-
-	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("variables", gson.toJson(this))
-			.addParameter("features", gson.toJson(graphQL.get("SearchTimeline").features))
-			.build();
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		var op = api.getGraphQLOperation("SearchTimeline");
+		return op.getUrl(gson.toJson(this));
 	}
 
 	@Override
@@ -61,7 +59,26 @@ public class ConfigSearchTimeline implements IConfigJsonTree<SearchByRawQuery> {
 		return SearchByRawQuery.fromJson(gson, new JsonHelper(element), element);
 	}
 
-	public enum QuerySource {
+    @Override
+    public SearchByRawQuery resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        try (var response = client.newCall(request).execute()) {
+            String responseStr = response.body().string();
+            List<TwitterError> errors = new ArrayList<>();
+            JsonElement json;
+            try {
+                json = JsonParser.parseString(responseStr);
+            } catch (Throwable e) {
+                throw new RuntimeException("Cannot parse JSON. Original response: " + responseStr, e);
+            }
+            SearchByRawQuery w = this.fromJson(IConfigJsonTree.assertErrors(json, request, errors), gson, errors);
+            w.rateLimit = Integer.parseInt(response.header("x-rate-limit-limit"));
+            w.rateLimitRemaining = Integer.parseInt(response.header("x-rate-limit-remaining"));
+            w.rateLimitReset = Long.parseLong(response.header("x-rate-limit-reset"));
+            return w;
+        }
+    }
+
+    public enum QuerySource {
 		typed_query,
 		/**
 		 * This is used on the 'quotes' tab a tweet interactions UI.

@@ -26,6 +26,11 @@ import dev.seeight.twitterscraper.impl.inst.Instruction;
 import dev.seeight.twitterscraper.util.JsonHelper;
 
 public class SearchByRawQuery extends Timeline {
+    // TODO: This is not ideal lol
+    public transient int rateLimit;
+    public transient int rateLimitRemaining;
+    public transient long rateLimitReset;
+
 	public static SearchByRawQuery fromJson(Gson gson, JsonHelper h, JsonElement element) {
 		SearchByRawQuery e = new SearchByRawQuery();
 		JsonArray instructions = h.set(element).next("data").next("search_by_raw_query").next("search_timeline").next("timeline").next("instructions").array();

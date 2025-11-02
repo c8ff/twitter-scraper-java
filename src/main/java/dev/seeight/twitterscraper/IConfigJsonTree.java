@@ -24,8 +24,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,16 +40,23 @@ import java.util.List;
  */
 public interface IConfigJsonTree<T> extends IConfig<T> {
 	@Override
-	default T resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
-		String responseStr = TwitterApi.executeString(client, request);
-		List<TwitterError> errors = new ArrayList<>();
-		JsonElement json;
-		try {
-			json = assertErrors(JsonParser.parseString(responseStr), request, errors);
-		} catch (Throwable e) {
-			throw new RuntimeException("Cannot parse JSON. Original response: " + responseStr, e);
-		}
-		return this.fromJson(json, gson, errors);
+	default T resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        try (var response = client.newCall(request).execute()) {
+            String responseStr = response.body().string();
+            List<TwitterError> errors = new ArrayList<>();
+            JsonElement json;
+            try {
+                json = JsonParser.parseString(responseStr);
+            } catch (Throwable e) {
+                throw new RuntimeException("Cannot parse JSON. Original response: " + responseStr, e);
+            }
+            try {
+                return this.fromJson(assertErrors(json, request, errors), gson, errors);
+            } catch (JsonFormatException e) {
+                e.source = responseStr;
+                throw e;
+            }
+        }
 	}
 
 	/**
@@ -71,7 +78,7 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 	 * @return The parameter {@code elm}.
 	 * @throws TwitterException When an error is present on the element.
 	 */
-	static JsonElement assertErrors(@NotNull JsonElement elm, @Nullable HttpUriRequestBase request, @Nullable List<TwitterError> errorList) throws TwitterException {
+	static JsonElement assertErrors(@NotNull JsonElement elm, @Nullable Request request, @Nullable List<TwitterError> errorList) throws TwitterException {
 		if (!(elm instanceof JsonObject object)) {
 			return elm;
 		}

@@ -21,17 +21,15 @@ package dev.seeight.twitterscraper.config.upload;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterException;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.upload.UploadedMedia;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -44,9 +42,10 @@ public class ConfigUploadStatus implements IConfigJsonTree<UploadedMedia> {
 	}
 
 	@Override
-	public UploadedMedia resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
-		ConfigUploadInit.stripHeaders(request);
-		return IConfigJsonTree.super.resolve(client, request, gson);
+	public UploadedMedia resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        var b = request.newBuilder();
+        ConfigUploadInit.stripHeaders(b);
+		return IConfigJsonTree.super.resolve(client, b.build(), gson);
 	}
 
 	@Override
@@ -55,15 +54,10 @@ public class ConfigUploadStatus implements IConfigJsonTree<UploadedMedia> {
 	}
 
 	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("command", this.command.name())
-			.addParameter("media_id", this.mediaId)
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return HttpUrl.get("https://upload.x.com/i/media/upload.json").newBuilder()
+			.addQueryParameter("command", this.command.name())
+			.addQueryParameter("media_id", this.mediaId)
 			.build();
-	}
-
-	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://upload.x.com/i/media/upload.json";
 	}
 }

@@ -21,12 +21,12 @@ package dev.seeight.twitterscraper.config.timeline;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.api2.GlobalObjects;
 import dev.seeight.twitterscraper.impl.api2.LegacyTimeline;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,13 +45,8 @@ public class ConfigApi2View implements IConfigJsonTree<ConfigApi2View.Api2View> 
     }
 
     @Override
-    public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-        return new URI(this.url);
-    }
-
-    @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return "";
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return HttpUrl.get(this.url);
     }
 
     public static class Api2View {

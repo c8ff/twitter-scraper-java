@@ -24,12 +24,12 @@ import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterList;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -48,18 +48,17 @@ public class ConfigPinTimeline implements IConfigJsonTree<ConfigPinTimeline.PinT
     }
 
     @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return graphQL.get("PinTimeline").url;
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return api.getGraphQLOperation("PinTimeline").getBaseUrl();
     }
 
     @Override
-    public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-        GraphQLMap.Entry e = graphQL.get("PinTimeline");
-
+    public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
+        var op = api.getGraphQLOperation("PinTimeline");
         String variables = gson.toJson(new Variables(new Variables.PinnedTimelineItem(this.id, this.pinnedTimelineType)));
-        String features = gson.toJson(e.features);
-        String queryId = e.queryId;
-        return TwitterApi.newJsonPostRequest(uri, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
+        String features = op.buildFeatures();
+        String queryId = op.getId();
+        return TwitterApi.jsonPostReq(url, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
     }
 
     protected static class Variables {

@@ -20,15 +20,14 @@ package dev.seeight.twitterscraper.config.interaction;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
-import dev.seeight.twitterscraper.TwitterList;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -48,17 +47,16 @@ public class ConfigUnPinTimeline implements IConfigJsonTree<ConfigPinTimeline.Pi
     }
 
     @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return graphQL.get("UnpinTimeline").url;
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return api.getGraphQLOperation("UnpinTimeline").getBaseUrl();
     }
 
     @Override
-    public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-        GraphQLMap.Entry e = graphQL.get("UnpinTimeline");
-
+    public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
+        var op = api.getGraphQLOperation("UnpinTimeline");
         String variables = gson.toJson(new ConfigPinTimeline.Variables(new ConfigPinTimeline.Variables.PinnedTimelineItem(this.id, this.pinnedTimelineType)));
-        String features = gson.toJson(e.features);
-        String queryId = e.queryId;
-        return TwitterApi.newJsonPostRequest(uri, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
+        String features = op.buildFeatures();
+        String queryId = op.getId();
+        return TwitterApi.jsonPostReq(url, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
     }
 }

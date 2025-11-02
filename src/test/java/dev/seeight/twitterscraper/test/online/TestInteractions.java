@@ -1,39 +1,57 @@
 package dev.seeight.twitterscraper.test.online;
 
-import dev.seeight.twitterscraper.IConfig;
-import dev.seeight.twitterscraper.Secret;
-import dev.seeight.twitterscraper.TwitterApi;
-import dev.seeight.twitterscraper.config.interaction.ConfigFollowCreate;
-import dev.seeight.twitterscraper.config.interaction.ConfigFollowDestroy;
-import dev.seeight.twitterscraper.config.interaction.ConfigRemoveFollower;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import dev.seeight.twitterscraper.config.interaction.*;
+import dev.seeight.twitterscraper.config.user.ConfigTweetResultsByRestIds;
+import dev.seeight.twitterscraper.test.g.TestApiController;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.util.function.Consumer;
-
 public class TestInteractions {
-	protected <T> void scrapDefault(IConfig<T> config, Consumer<T> consumer) throws Exception {
-		TwitterApi api = TwitterApi.newTwitterApi();
-		Secret.defineFromFile(api, new File("D:\\dev\\Java\\c8ff\\twitter\\xeno.web\\run\\secret.json"));
+	@Test
+	public void favoriteTweet() {
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigFavoriteTweet("1773948632758206695"), client));
+		System.out.println(result);
+	}
 
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
-			consumer.accept(api.scrap(config, client));
-		}
+	@Test
+	public void unFavoriteTweet() {
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigUnFavoriteTweet("1773948632758206695"), client));
+        System.out.println(result);
 	}
 
 	@Test
 	public void followCreate() throws Exception {
-		scrapDefault(new ConfigFollowCreate("3023961057"), System.out::println);
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigFollowCreate("3023961057"), client));
+        System.out.println(result);
 	}
 
 	@Test
 	public void followDestroy() throws Exception {
-		scrapDefault(new ConfigFollowDestroy("3023961057"), System.out::println);
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigFollowDestroy("3023961057"), client));
+        System.out.println(result);
 	}
 	@Test
 	public void removeFollower() throws Exception {
-		scrapDefault(new ConfigRemoveFollower("2342563641235"), System.out::println);
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigRemoveFollower("2342563641235"), client));
+        System.out.println(result);
+	}
+
+	@Test
+	public void pinTimeline() throws Exception {
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigPinTimeline("1873316187834110397", "List"), client));
+        System.out.println(result);
+	}
+	@Test
+	public void unpinTimeline() throws Exception {
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigUnPinTimeline("1873316187834110397", "List"), client));
+        System.out.println(result);
+	}
+	@Test
+	public void adasdsa() throws Exception {
+        var result = TestApiController.insideContext((api, client) -> api.scrap(new ConfigTweetResultsByRestIds(new String[] {
+                "1901699498704867423",
+                "1928521879028891997",
+                "1939025587563094424",
+        }), client));
+        System.out.println(result);
 	}
 }

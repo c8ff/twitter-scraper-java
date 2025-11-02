@@ -22,19 +22,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.Timeline;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.inst.Instruction;
-import dev.seeight.twitterscraper.impl.user.UserMedia;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 
 public class ConfigListsAdminTimeline implements IConfigJsonTree<Timeline> {
 	public int variables = 100;
@@ -45,16 +43,8 @@ public class ConfigListsAdminTimeline implements IConfigJsonTree<Timeline> {
 	}
 
 	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("variables", gson.toJson(this))
-			.addParameter("features", gson.toJson(graphQL.get("ListsManagementPageTimeline").features))
-			.build();
-	}
-
-	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("ListsManagementPageTimeline").url;
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return api.getGraphQLOperation("ListsManagementPageTimeline").getUrl(gson.toJson(this));
 	}
 
 	public static class ListsAdminTimeline extends Timeline {

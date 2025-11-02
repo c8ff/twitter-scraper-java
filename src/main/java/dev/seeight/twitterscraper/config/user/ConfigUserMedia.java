@@ -21,14 +21,13 @@ package dev.seeight.twitterscraper.config.user;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -50,17 +49,9 @@ public class ConfigUserMedia implements IConfigJsonTree<UserMedia> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("UserMedia").url;
-	}
-
-	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("variables", gson.toJson(this))
-			.addParameter("features", gson.toJson(graphQL.get("UserMedia").features))
-			.addParameter("fieldToggles", "{\"withArticlePlainText\":false}")
-			.build();
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		var op = api.getGraphQLOperation("UserMedia");
+		return op.getUrl(gson.toJson(this));
 	}
 
 	@Override

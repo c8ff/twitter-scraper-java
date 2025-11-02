@@ -24,8 +24,7 @@ import dev.seeight.twitterscraper.impl.timeline.SearchByRawQuery;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
 import dev.seeight.twitterscraper.util.JsonUtil;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import okhttp3.OkHttpClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +41,8 @@ public class ApiExample {
 		api.userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0";
 		api.csrfToken = "<csrf_token>";
 
-		try (CloseableHttpClient client = HttpClients.createDefault()) {
+        var client = new OkHttpClient.Builder().build();
+		try {
 			// Get the user id (required for some requests)
 			User user = api.scrap(new ConfigUserByScreenName("x"), client);
 			// Request the media tab of the user (using the returned id) and parse the results

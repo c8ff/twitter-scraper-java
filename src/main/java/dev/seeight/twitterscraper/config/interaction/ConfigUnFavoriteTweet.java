@@ -22,11 +22,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -39,13 +40,14 @@ public class ConfigUnFavoriteTweet implements IConfigJsonTree<String> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("UnfavoriteTweet").url;
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return api.getGraphQLOperation("UnfavoriteTweet").getBaseUrl();
 	}
 
 	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-		return TwitterApi.newJsonPostRequest(uri, "{\"variables\":{\"tweet_id\":\"" + tweetId + "\"},\"queryId\":\"" + graphQL.get("UnfavoriteTweet").queryId + "\"}");
+	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
+		var op = api.getGraphQLOperation("UnfavoriteTweet");
+		return TwitterApi.jsonPostReq(url, "{\"variables\":{\"tweet_id\":\"" + tweetId + "\"},\"queryId\":\"" + op.getId() + "\"}");
 	}
 
 	@Override

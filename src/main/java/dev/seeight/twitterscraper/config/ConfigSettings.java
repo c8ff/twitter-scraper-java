@@ -24,41 +24,36 @@ import dev.seeight.twitterscraper.IConfig;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterException;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.Settings;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 public class ConfigSettings implements IConfig<Settings> {
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return "https://api.x.com/1.1/account/settings.json";
-	}
-
-	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("include_ext_sharing_audiospaces_listening_data_with_followers", "true")
-			.addParameter("include_mention_filter", "true")
-			.addParameter("include_nsfw_user_flag", "true")
-			.addParameter("include_nsfw_admin_flag", "true")
-			.addParameter("include_ranked_timeline", "true")
-			.addParameter("include_alt_text_compose", "true")
-			.addParameter("ext", "ssoConnections")
-			.addParameter("include_country_code", "true")
-			.addParameter("include_ext_dm_nsfw_media_filter", "true")
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return HttpUrl.get("https://api.x.com/1.1/account/settings.json").newBuilder()
+			.addQueryParameter("include_ext_sharing_audiospaces_listening_data_with_followers", "true")
+			.addQueryParameter("include_mention_filter", "true")
+			.addQueryParameter("include_nsfw_user_flag", "true")
+			.addQueryParameter("include_nsfw_admin_flag", "true")
+			.addQueryParameter("include_ranked_timeline", "true")
+			.addQueryParameter("include_alt_text_compose", "true")
+			.addQueryParameter("ext", "ssoConnections")
+			.addQueryParameter("include_country_code", "true")
+			.addQueryParameter("include_ext_dm_nsfw_media_filter", "true")
 			.build();
 	}
 
 	@Override
-	public Settings resolve(HttpClient client, HttpUriRequestBase request, Gson gson) throws IOException, TwitterException {
-		String s = TwitterApi.executeString(client, request);
-		return gson.fromJson(IConfigJsonTree.assertErrors(JsonParser.parseString(s), request, null), Settings.class);
+	public Settings resolve(OkHttpClient client, Request request, Gson gson) throws IOException, TwitterException {
+        try (var response = client.newCall(request).execute()) {
+            String s = response.body().string();
+            var json = IConfigJsonTree.assertErrors(JsonParser.parseString(s), request, null);
+            return gson.fromJson(json, Settings.class);
+        }
 	}
 }

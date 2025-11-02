@@ -21,14 +21,16 @@ package dev.seeight.twitterscraper.config.interaction;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterList;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -50,23 +52,23 @@ public class ConfigListRemoveMember implements IConfigJsonTree<TwitterList> {
     }
 
     @Override
-    public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-        GraphQLMap.Entry q = graphQL.get("ListRemoveMember");
+    public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
+        var op = api.getGraphQLOperation("ListRemoveMember");
 
         JsonObject variables = new JsonObject();
         variables.addProperty("listId", this.listId);
         variables.addProperty("userId", this.userId);
 
         JsonObject o = new JsonObject();
-        o.add("features", gson.toJsonTree(q.features));
-        o.addProperty("queryId", q.queryId);
+        o.add("features", JsonParser.parseString(op.buildFeatures()));
+        o.addProperty("queryId", op.getId());
         o.add("variables", variables);
 
-        return TwitterApi.newJsonPostRequest(uri, o.toString());
+        return TwitterApi.jsonPostReq(url, o.toString());
     }
 
     @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return graphQL.get("ListRemoveMember").url;
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return api.getGraphQLOperation("ListRemoveMember").getBaseUrl();
     }
 }

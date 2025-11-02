@@ -23,13 +23,13 @@ import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.config.SendType;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.timeline.LatestTimeline;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -53,33 +53,24 @@ public class ConfigLatestTimeline implements IConfigJsonTree<LatestTimeline> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("HomeLatestTimeline").url;
-	}
-
-	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
+	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
 		// No method body for GET request.
 		if (sendType == SendType.GET) {
-			return IConfigJsonTree.super.createRequest(gson, uri, graphQL);
+			return IConfigJsonTree.super.createRequest(gson, url, api);
 		}
 
-		GraphQLMap.Entry e = graphQL.get("HomeLatestTimeline");
-
+		var a = api.getGraphQLOperation("HomeLatestTimeline");
 		String variables = gson.toJson(this);
-		String features = gson.toJson(e.features);
-		String queryId = e.queryId;
-		return TwitterApi.newJsonPostRequest(uri, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
+		String features = a.buildFeatures();
+		String queryId = a.getId();
+		return TwitterApi.jsonPostReq(url, "{\"variables\":" + variables + ",\"features\":" + features + ",\"queryId\":\"" + queryId + "\"}");
 	}
 
 	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		if (sendType == SendType.POST) return builder.build();
-
-		return builder
-			.addParameter("variables", gson.toJson(this))
-			.addParameter("features", gson.toJson(graphQL.get("HomeLatestTimeline").features))
-			.build();
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		var op = api.getGraphQLOperation("HomeLatestTimeline");
+		if (sendType == SendType.POST) return op.getBaseUrl();
+		return op.getUrl(gson.toJson(this));
 	}
 
 	@Override

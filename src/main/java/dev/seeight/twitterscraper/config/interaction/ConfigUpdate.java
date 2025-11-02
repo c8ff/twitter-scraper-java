@@ -22,12 +22,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -63,14 +63,13 @@ public class ConfigUpdate implements IConfigJsonTree<ConfigUpdate.Relationship> 
     }
 
     @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return "https://x.com/i/api/1.1/friendships/update.json";
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return HttpUrl.get("https://x.com/i/api/1.1/friendships/update.json");
     }
 
     @Override
-    public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
-        HttpPost req = new HttpPost(uri);
-        var b = new StringBuilder();
+    public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException {
+        var b = new FormBody.Builder();
         for (Field field : ConfigUpdate.class.getFields()) {
             if ((field.getModifiers() & Modifier.TRANSIENT) != 0) continue;
             Object val;
@@ -82,15 +81,10 @@ public class ConfigUpdate implements IConfigJsonTree<ConfigUpdate.Relationship> 
 
             if (val == null) continue;
             if (field.getType().isAssignableFrom(String.class) || field.getType().isAssignableFrom(Boolean.class)) {
-                if (!b.isEmpty()) b.append("&");
-                b.append(field.getName()).append('=').append(val);
+                b.add(field.getName(), String.valueOf(val));
             }
         }
-        System.out.println(b.toString());
-        StringEntity entity = new StringEntity(b.toString());
-        req.setEntity(entity);
-        req.addHeader("content-type", "application/x-www-form-urlencoded");
-        return req;
+        return new Request.Builder().url(url).post(b.build());
     }
 
     public static class Relationship {

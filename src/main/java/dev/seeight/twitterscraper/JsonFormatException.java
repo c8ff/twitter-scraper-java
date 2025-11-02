@@ -19,6 +19,8 @@
 package dev.seeight.twitterscraper;
 
 public class JsonFormatException extends RuntimeException {
+    public String source;
+
 	public JsonFormatException(String message) {
 		super(message);
 	}

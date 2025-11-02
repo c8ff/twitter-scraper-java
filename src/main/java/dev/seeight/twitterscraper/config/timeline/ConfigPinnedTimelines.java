@@ -22,13 +22,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.TwitterList;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -41,15 +40,8 @@ public class ConfigPinnedTimelines implements IConfigJsonTree<TwitterList[]> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("PinnedTimelines").url;
-	}
-
-	@Override
-	public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-		return builder
-			.addParameter("variables", "{}")
-			.addParameter("features", gson.toJson(graphQL.get("PinnedTimelines").features))
-			.build();
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		var op = api.getGraphQLOperation("PinnedTimelines");
+		return op.getUrl(gson.toJson(this));
 	}
 }

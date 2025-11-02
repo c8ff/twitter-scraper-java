@@ -21,13 +21,12 @@ package dev.seeight.twitterscraper.config.interaction;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.seeight.twitterscraper.IConfigJsonTree;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
+import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.TypeAhead;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.core5.net.URIBuilder;
+import okhttp3.HttpUrl;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -49,19 +48,14 @@ public class ConfigTypeAhead implements IConfigJsonTree<TypeAhead> {
     }
 
     @Override
-    public URI buildURI(Gson gson, URIBuilder builder, GraphQLMap graphQL) throws URISyntaxException {
-        return builder
-                .addParameter("include_ext_is_blue_verified", String.valueOf(this.include_ext_is_blue_verified))
-                .addParameter("include_ext_verified_type", String.valueOf(this.include_ext_verified_type))
-                .addParameter("include_ext_profile_image_shape", String.valueOf(this.include_ext_profile_image_shape))
-                .addParameter("q", this.query)
-                .addParameter("src", this.src)
-                .addParameter("result_type", this.result_type)
+    public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+        return HttpUrl.get("https://x.com/i/api/1.1/search/typeahead.json").newBuilder()
+                .addQueryParameter("include_ext_is_blue_verified", String.valueOf(this.include_ext_is_blue_verified))
+                .addQueryParameter("include_ext_verified_type", String.valueOf(this.include_ext_verified_type))
+                .addQueryParameter("include_ext_profile_image_shape", String.valueOf(this.include_ext_profile_image_shape))
+                .addQueryParameter("q", String.valueOf(this.query))
+                .addQueryParameter("src", String.valueOf(this.src))
+                .addQueryParameter("result_type", String.valueOf(this.result_type))
                 .build();
-    }
-
-    @Override
-    public String getBaseURL(GraphQLMap graphQL) {
-        return "https://x.com/i/api/1.1/search/typeahead.json";
     }
 }

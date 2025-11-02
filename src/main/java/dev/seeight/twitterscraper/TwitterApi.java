@@ -20,27 +20,22 @@ package dev.seeight.twitterscraper;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
-import dev.seeight.twitterscraper.graphql.JsonGraphQLMap;
+import com.google.gson.JsonPrimitive;
+import dev.seeight.twitterscraper.features.FeatureFetcher;
+import dev.seeight.twitterscraper.graphql.GraphQL;
 import dev.seeight.twitterscraper.impl.search.SearchAdaptiveResult;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.net.URIBuilder;
+import dev.seeight.util.MiscUtil;
+import okhttp3.*;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * The base API to execute configurations (instances of {@link IConfig}).
@@ -60,24 +55,24 @@ public class TwitterApi {
 	public final Gson gson;
 	String clientUUID;
 	public EventHandler eventHandler;
-
-	protected GraphQLMap graphQL;
+	public FeatureFetcher.TwitterPage page;
+	protected Map<String, GraphQL.Entry> graphQL;
+	protected Map<String, GraphQLHotfix> graphQLHotFix;
 
 	protected TwitterApi(Gson gson) {
 		this.gson = gson;
-		this.createGraphQL(TwitterApi.class.getResourceAsStream("/graphql/2024-06-20.json"));
-	}
 
-	public void createGraphQL(@NotNull InputStream graphqlJson) {
-		this.setGraphQL(new JsonGraphQLMap(gson, graphqlJson));
-	}
-
-	public void setGraphQL(@NotNull GraphQLMap graphQL) {
-		this.graphQL = graphQL;
-	}
-
-	public GraphQLMap graphQL() {
-		return graphQL;
+		try {
+			this.graphQLHotFix = new HashMap<>();
+			var ql = GraphQL.fromURL(gson).entries;
+			Map<String, GraphQL.Entry> g = new HashMap<>();
+			for (var a : ql) {
+				g.put(a.exports.operationName, a);
+			}
+			this.graphQL = g;
+		} catch (Exception e) {
+			MiscUtil.sneakyThrow(e);
+		}
 	}
 
 	/**
@@ -85,11 +80,11 @@ public class TwitterApi {
 	 *
 	 * @param request The request to add the parameters to.
 	 */
-	private void addCookies(HttpUriRequestBase request) {
+	private void addCookies(Request.Builder request) {
 		this.assertAuth();
-		request.addHeader(HttpHeaders.AUTHORIZATION, this.bearerAuthorization);
-		request.addHeader(HttpHeaders.COOKIE, this.cookie);
-		request.addHeader(HttpHeaders.USER_AGENT, this.userAgent);
+		request.addHeader("authorization", this.bearerAuthorization);
+		request.addHeader("cookie", this.cookie);
+		request.addHeader("User-Agent", this.userAgent);
 		request.addHeader("x-csrf-token", this.csrfToken);
 		if (this.clientUUID != null) {
 			request.addHeader("x-Client-UUID", this.clientUUID);
@@ -104,21 +99,20 @@ public class TwitterApi {
 	}
 
 	/**
-	 * Executes the provided configuration with a {@link HttpClient} instance.
+	 * Executes the provided configuration with a {@link okhttp3.OkHttpClient} instance.
 	 *
 	 * @param <T>    The result of the configuration execution.
 	 * @param config The config to execute.
-	 * @param client A {@link HttpClient} to send the config's request.
+	 * @param client A {@link okhttp3.OkHttpClient} to send the config's request.
 	 * @return The resulting {@link T}.
 	 */
-	public <T> T scrap(IConfig<T> config, HttpClient client) throws IOException, URISyntaxException {
+	public <T> T scrap(IConfig<T> config, OkHttpClient client) throws IOException, URISyntaxException {
 		this.assertAuth();
-		GraphQLMap ql = this.graphQL();
-		URI uri = config.buildURI(gson, new URIBuilder(config.getBaseURL(ql)), ql);
-		HttpUriRequestBase request = config.createRequest(this.gson, uri, ql);
+		var url = config.getUrl(gson, this);
+		var request = config.createRequest(this.gson, url, this);
 		this.addCookies(request);
-		if (eventHandler != null) eventHandler.onBeforeResolvingRequest(uri, request);
-		return config.resolve(client, request, this.gson);
+		if (eventHandler != null) eventHandler.onBeforeResolvingRequest(url, request);
+        return config.resolve(client, request.build(), this.gson);
 	}
 
 	/**
@@ -165,42 +159,116 @@ public class TwitterApi {
 		return new TwitterApi(gson);
 	}
 
-	public static String executeString(HttpClient client, HttpUriRequestBase request) throws IOException {
-		// goofy ahh api
-		return client.execute(request, response -> {
-			if (response.getEntity() == null) {
-				throw new NullPointerException();
-			}
-
-			return EntityUtils.toString(response.getEntity());
-		});
-	}
-
 	public static GsonBuilder defaultBuilder() {
 		return new GsonBuilder()
 			.disableHtmlEscaping()
 			.registerTypeAdapter(SearchAdaptiveResult.Timeline.class, new SearchAdaptiveResult.TimeLineCursorDeserializer());
 	}
 
-	public static HttpPost newJsonPostRequest(URI uri, String body) {
-		HttpPost req = new HttpPost(uri);
-		StringEntity entity = new StringEntity(body);
-		req.setEntity(entity);
-		req.addHeader("content-type", "application/json");
-		return req;
+	public static Request.Builder jsonPostReq(HttpUrl url, String body) throws MalformedURLException {
+		return new Request.Builder().url(url).post(RequestBody.create(body, MediaType.parse("application/json")));
 	}
 
 	public static long convertTwitterDateToEpochUTC(String date) {
 		return LocalDateTime.parse(date, formatter).toEpochSecond(ZoneOffset.UTC);
 	}
 
+	public void addHotFix(String operationName, String featureName, @Nullable Object featureValue) {
+		this.graphQLHotFix.computeIfAbsent(operationName, s -> new GraphQLHotfix()).addFix(featureName, featureValue);
+	}
+
+	public GraphQLBuilder getGraphQLOperation(String operationName) {
+		var op = graphQL.get(operationName);
+		if (op == null) throw new NullPointerException("GraphQL operation \"" + operationName + "\" mapping not found.");
+		return new GraphQLBuilder(op);
+	}
+
+	public static class GraphQLHotfix {
+		public List<Fix> fixes = new ArrayList<>();
+		public void addFix(String feature, Object value) {
+			fixes.add(new Fix(feature, value));
+		}
+		public static class Fix {
+			public String feature;
+			public Object value;
+
+			public Fix(String feature, Object value) {
+				this.feature = feature;
+				this.value = value;
+			}
+		}
+	}
+
+	public class GraphQLBuilder {
+		private final GraphQL.Entry e;
+		public GraphQLBuilder(GraphQL.Entry e) {
+			this.e = e;
+		}
+
+		public String getUrlStr() {
+			if (page == null) throw new NullPointerException("page");
+			return "https://x.com/i/api/graphql/" + e.exports.queryId + "/" + e.exports.operationName;
+		}
+
+        public HttpUrl getBaseUrl() {
+            return HttpUrl.get(getUrlStr());
+        }
+
+		public HttpUrl getUrl(String variablesJson) {
+            var b = getBaseUrl().newBuilder();
+            b.addQueryParameter("variables", variablesJson);
+			if (page == null) return b.build();
+            b.addQueryParameter("features", buildFeatures());
+			return b.build();
+		}
+
+		public String getId() {
+			return e.exports.queryId;
+		}
+
+		public String buildFeatures() {
+			StringBuilder z = new StringBuilder("{");
+			var first = true;
+			for (String s : e.exports.metadata.featureSwitches) {
+				if (first) first = false; else z.append(",");
+				z.append('"').append(s).append("\": ");
+				var v = page.getFeatures().get(s);
+				if (v instanceof JsonPrimitive p && p.isString()) {
+					z.append('\"').append(v).append('\"');
+				} else {
+					// This is a fallback.
+					if (v == null) {
+						z.append("false");
+					} else z.append(v);
+				}
+			}
+			var hotfix = graphQLHotFix.get(e.exports.operationName);
+			if (hotfix != null) {
+				for (GraphQLHotfix.Fix fix : hotfix.fixes) {
+					if (first) first = false; else z.append(",");
+
+					var s = fix.feature;
+					z.append('"').append(s).append("\": ");
+					var v = fix.value != null ? fix.value : false;
+					if (v instanceof JsonPrimitive p && p.isString()) {
+						z.append('\"').append(v).append('\"');
+					} else {
+						z.append(v);
+					}
+				}
+			}
+			z.append("}");
+			return z.toString();
+		}
+	}
+
 	public interface EventHandler {
 		/**
 		 * Called before a {@link IConfig} processes and resolves a request.
 		 *
-		 * @param uri The URI of request.
+		 * @param url The URL of request.
 		 * @param request The request.
 		 */
-		void onBeforeResolvingRequest(URI uri, HttpUriRequestBase request);
+		void onBeforeResolvingRequest(HttpUrl url, Request.Builder request);
 	}
 }

@@ -24,16 +24,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.IConfigJsonTree;
 import dev.seeight.twitterscraper.TwitterApi;
-import dev.seeight.twitterscraper.graphql.GraphQLMap;
 import dev.seeight.twitterscraper.impl.Tweet;
 import dev.seeight.twitterscraper.impl.TwitterError;
 import dev.seeight.twitterscraper.impl.upload.PartiallyUploadedMedia;
 import dev.seeight.twitterscraper.util.JsonHelper;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,13 @@ public class ConfigCreateTextTweet implements IConfigJsonTree<Tweet> {
 	public final String inReplyToId;
 	@Nullable
 	public Media media;
+    @Nullable
+    public BatchCompose batchCompose;
+
+    public enum BatchCompose {
+        BatchFirst,
+        BatchSubsequent
+    }
 
 	public ConfigCreateTextTweet(@NotNull String text, @Nullable String inReplyToId) {
 		this.text = text;
@@ -52,16 +59,15 @@ public class ConfigCreateTextTweet implements IConfigJsonTree<Tweet> {
 	}
 
 	@Override
-	public String getBaseURL(GraphQLMap graphQL) {
-		return graphQL.get("CreateTweet").url;
+	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
+		return api.getGraphQLOperation("CreateTweet").getBaseUrl();
 	}
 
-	@Override
-	public HttpUriRequestBase createRequest(Gson gson, URI uri, GraphQLMap graphQL) throws URISyntaxException {
+    @Override
+	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException, MalformedURLException {
 		JsonObject variables = new JsonObject();
 		variables.addProperty("tweet_text", this.text);
 		variables.addProperty("dark_request", false);
-		variables.addProperty("disallowed_reply_options", (String) null);
 
 		if (this.inReplyToId != null) {
 			JsonObject reply = new JsonObject();
@@ -75,20 +81,25 @@ public class ConfigCreateTextTweet implements IConfigJsonTree<Tweet> {
 			variables.add("media", gson.toJsonTree(this.media));
 		} else {
 			JsonObject media = new JsonObject();
-			media.addProperty("possibly_sensitive", false);
 			media.add("media_entities", new JsonArray());
+			media.addProperty("possibly_sensitive", false);
 			variables.add("media", media);
 		}
+
+        if (this.batchCompose != null) {
+            variables.addProperty("batch_compose", this.batchCompose.toString());
+        }
+		variables.add("semantic_annotation_ids", new JsonArray());
+		variables.addProperty("disallowed_reply_options", (String) null);
 
 		StringBuilder b = new StringBuilder();
 
 		b.append("{\"variables\":").append(variables).append(",");
 
-		GraphQLMap.Entry e = graphQL.get("CreateTweet");
-		String features = gson.toJson(e.features);
-		String queryId = e.queryId;
-		b.append("\"features\":").append(features).append(",\"queryId\":\"").append(queryId).append("\"}");
-		return TwitterApi.newJsonPostRequest(uri, b.toString());
+		var op = api.getGraphQLOperation("CreateTweet");
+		b.append("\"features\":").append(op.buildFeatures()).append(",\"queryId\":\"").append(op.getId()).append("\"}");
+        System.out.println(b.toString());
+		return TwitterApi.jsonPostReq(url, b.toString());
 	}
 
 	@Override
