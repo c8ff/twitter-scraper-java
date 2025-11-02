@@ -43,6 +43,8 @@ public class Tweet extends Entry {
 	@Deprecated
 	public long creationDate;
 	public String createdAt;
+	public String postImageDescription;
+	public String postVideoDescription;
 	public String id;
 	@Deprecated
 	public String text;
@@ -113,6 +115,8 @@ public class Tweet extends Entry {
 			helper.set(rootObject);
 		}
 
+        tweet.postImageDescription = helper.string("post_image_description", null);
+        tweet.postVideoDescription = helper.string("post_video_description", null);
 		tweet.id = rootObject.get("rest_id").getAsString();
 		tweet.views = helper.set(rootObject).next("views").string("count", null);
 		tweet.publishDevice = helper.set(rootObject).string("source");
