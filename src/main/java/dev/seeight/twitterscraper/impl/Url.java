@@ -47,12 +47,8 @@ public class Url extends TextEntity implements Cloneable {
 
 	@Override
 	public Url clone() {
-		try {
-			Url clone = (Url) super.clone();
-			clone.range = this.range.clone();
-			return clone;
-		} catch (CloneNotSupportedException e) {
-			throw new AssertionError();
-		}
+		Url clone = (Url) super.clone();
+		clone.range = this.range.clone();
+		return clone;
 	}
 }
