@@ -22,7 +22,8 @@ public class GraphQL {
 			result.write(buffer, 0, length);
 		}
 		stream.close();
-		var s = result.toString(StandardCharsets.UTF_8);
+		//noinspection CharsetObjectCanBeUsed (cuz of compat issues with android)
+		var s = result.toString(StandardCharsets.UTF_8.name());
 		return gson.fromJson("{\"entries\":" + s + "}", GraphQL.class);
 	}
 
