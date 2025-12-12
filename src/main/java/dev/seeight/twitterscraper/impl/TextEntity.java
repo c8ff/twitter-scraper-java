@@ -18,10 +18,21 @@
 
 package dev.seeight.twitterscraper.impl;
 
-public abstract class TextEntity {
+public abstract class TextEntity implements Cloneable {
 	public Range range;
 
 	public abstract Type getType();
+
+	@Override
+	public TextEntity clone() {
+		try {
+			TextEntity clone = (TextEntity) super.clone();
+			clone.range = clone.range.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			throw new AssertionError();
+		}
+	}
 
 	public enum Type {
 		URL,
