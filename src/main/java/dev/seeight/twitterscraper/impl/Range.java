@@ -24,11 +24,16 @@ public class Range implements Cloneable {
 	public int start;
 	public int end;
 
+	public Range() {
+	}
+
+	public Range(int start, int end) {
+		this.start = start;
+		this.end = end;
+	}
+
 	public static Range fromArray(JsonArray array) {
-		Range r = new Range();
-		r.start = array.get(0).getAsInt();
-		r.end = array.get(1).getAsInt();
-		return r;
+		return new Range(array.get(0).getAsInt(), array.get(1).getAsInt());
 	}
 
 	@Override
