@@ -45,7 +45,7 @@ public class ConfigLastSeenCursor implements IConfigJsonTree<ConfigLastSeenCurso
 
 	@Override
 	public Request.Builder createRequest(Gson gson, HttpUrl url, TwitterApi api) throws URISyntaxException {
-        return new Request.Builder().post(
+        return new Request.Builder().url(url).post(
                 new FormBody.Builder()
                         .add("cursor", cursor)
                         .build()
