@@ -70,7 +70,8 @@ public class FeatureFetcher {
             client.dispatcher().executorService().shutdown();
             client.connectionPool().evictAll();
             try {
-                client.cache().close();
+				var c = client.cache();
+				if (c != null) c.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
