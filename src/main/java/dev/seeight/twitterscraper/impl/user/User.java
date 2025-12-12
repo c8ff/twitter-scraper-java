@@ -122,7 +122,7 @@ public class User extends Entry {
 		h.set(obj).next("core");
 
 		ref.screenName = h.string("screen_name");
-		ref.name = h.string("name");
+		ref.name = h.string("name", "[restricted]");
 		ref.createdAt = h.string("created_at");
 
 		// what the fuck
@@ -137,7 +137,7 @@ public class User extends Entry {
 		// what??
 		if (h.set(obj).tryNext("verification")) ref.verified = h.bool("verified");
 		if (h.set(obj).tryNext("privacy")) ref.isProtected = h.bool("protected");
-		if (h.set(obj).tryNext("location")) ref.location = h.string("location");
+		if (h.set(obj).tryNext("location") && h.has("location")) ref.location = h.string("location");
 
 		h.set(legacy);
 		ref.rawDescription = ref.description = h.string("description");
