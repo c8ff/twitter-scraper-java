@@ -20,6 +20,7 @@ import dev.seeight.twitterscraper.TwitterApi;
 import dev.seeight.twitterscraper.config.timeline.ConfigSearchTimeline;
 import dev.seeight.twitterscraper.config.user.ConfigUserByScreenName;
 import dev.seeight.twitterscraper.config.user.ConfigUserMedia;
+import dev.seeight.twitterscraper.features.FeatureFetcher;
 import dev.seeight.twitterscraper.impl.timeline.SearchByRawQuery;
 import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.impl.user.UserMedia;
@@ -41,8 +42,11 @@ public class ApiExample {
 		api.userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0";
 		api.csrfToken = "<csrf_token>";
 
-        var client = new OkHttpClient.Builder().build();
+		var client = new OkHttpClient.Builder().build();
 		try {
+			// This is required for correct feature switches for requests.
+			api.page = FeatureFetcher.fetchTwitterPage(api.cookie, client, null);
+
 			// Get the user id (required for some requests)
 			User user = api.scrap(new ConfigUserByScreenName("x"), client);
 			// Request the media tab of the user (using the returned id) and parse the results
@@ -51,6 +55,14 @@ public class ApiExample {
 			System.out.println(userMedia);
 			// Save the results to a file.
 			Files.writeString(new File("user-media.json").toPath(), JsonUtil.toJson(userMedia));
+
+			// Sadly, Twitter has made a lot of endpoints require a valid x-client-transaction-id header generator.
+			// This means search doesn't work unless you have a working generator.
+			// A generator can be possible by setting the header with this method in the api object:
+			//      api.eventHandler = (url, request) -> ...
+			// A valid TLS setup is also needed for performing certain actions.
+
+			if (true) return;
 
 			// Similar as before, but this sends a search request.
 			ConfigSearchTimeline config = new ConfigSearchTimeline("(from:x) -filter:replies", null);

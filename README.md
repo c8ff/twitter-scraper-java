@@ -11,17 +11,19 @@ public static void main(String[] args) {
     // Define secrets from the specified JSON file.
     Secret.defineFromFile(api, new File("./secret.json"));
 
-    // Create a HttpClient to send and receive requests.
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
-        // Create the configuration to process.
-        ConfigTweetDetail config = new ConfigTweetDetail("161349024945942529", null);
-        // Send the request and process the result.
-        TweetDetail result = api.scrap(config, client);
-        // Save the processed response into a 'tweet-detail.json' file.
-        Files.writeString(new File("tweet-detail.json").toPath(), new Gson().toJson(result));
-    } catch (IOException | URISyntaxException e) {
-        e.printStackTrace();
-    }
+	var client = new OkHttpClient.Builder().build();
+	try {
+		// This is required for correct feature switches for requests.
+		api.page = FeatureFetcher.fetchTwitterPage(api.cookie, client, null);
+		// Create the configuration to process.
+		ConfigTweetDetail config = new ConfigTweetDetail("161349024945942529", null);
+		// Send the request and process the result.
+		TweetDetail result = api.scrap(config, client);
+		// Save the processed response into a 'tweet-detail.json' file.
+		Files.writeString(new File("tweet-detail.json").toPath(), new Gson().toJson(result));
+	} catch (IOException | URISyntaxException e) {
+		e.printStackTrace();
+	}
 }
 ```
 then, the file will then have a similar JSON structure to this:
