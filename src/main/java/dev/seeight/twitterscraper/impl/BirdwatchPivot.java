@@ -51,8 +51,8 @@ public class BirdwatchPivot {
 		BirdwatchPivot p = new BirdwatchPivot();
 		p.title = h.string("title");
 		p.shortTitle = h.string("shorttitle");
-		p.iconType = h.string("iconType");
-		p.destinationUrl = h.string("destinationUrl");
+		p.iconType = h.string("iconType", h.string("icon_type", null));
+		p.destinationUrl = h.string("destinationUrl", h.string("destination_url", null));
 		p.footer = Information.fromJson(h.object("footer"), h);
 		p.subtitle = Information.fromJson(h.set(root).object("subtitle"), h);
 		h.set(root);
