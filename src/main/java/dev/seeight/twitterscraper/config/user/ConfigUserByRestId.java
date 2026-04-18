@@ -43,7 +43,7 @@ public class ConfigUserByRestId implements IConfigJsonTree<User> {
 	@Override
 	public HttpUrl getUrl(Gson gson, TwitterApi api) throws URISyntaxException {
 		var op = api.getGraphQLOperation("UserByRestId");
-		return op.getUrl(String.format("{\"user_id\":\"%s\"}", userId));
+		return op.getUrl(String.format("{\"userId\":\"%s\"}", userId));
 	}
 
 	@Override
