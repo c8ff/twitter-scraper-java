@@ -35,7 +35,7 @@ import dev.seeight.twitterscraper.util.JsonHelper;
 import okhttp3.HttpUrl;
 
 public class ConfigListsAdminTimeline implements IConfigJsonTree<Timeline> {
-	public int variables = 100;
+	public int count = 100;
 
 	@Override
 	public Timeline fromJson(JsonElement element, Gson gson, List<TwitterError> errors) {
