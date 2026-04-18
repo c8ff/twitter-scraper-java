@@ -73,6 +73,7 @@ public class Cursor extends Entry {
 	public enum CursorType {
 		BOTTOM,
 		TOP,
+		TopAndBottom, // shouldn't contain any value. it's only used in InstructionTerminateTimeline as far as I can tell.
 		ShowMoreThreads,
 		ShowMore,
 		ShowMoreThreadsPrompt;
