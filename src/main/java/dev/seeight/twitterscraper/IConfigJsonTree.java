@@ -91,7 +91,12 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
 		if (errorList == null) errorList = new ArrayList<>(errors.getAsJsonArray().size());
 		TwitterError.fromJsonArray(new JsonHelper(elm), errors.getAsJsonArray(), errorList);
 		for (TwitterError err : errorList) {
-			if (err.code == TwitterError.ALREADY_RETWEETED || err.code == TwitterError.ALREADY_FAVORITED || err.code == TwitterError.ALREADY_UNFAVORITED || err.code == TwitterError.TIMEOUT_UNSPECIFIED) continue;
+			if (err.code == TwitterError.ALREADY_RETWEETED
+                    || err.code == TwitterError.ALREADY_FAVORITED
+                    || err.code == TwitterError.ALREADY_UNFAVORITED
+                    || err.code == TwitterError.TIMEOUT_UNSPECIFIED
+                    || err.code == TwitterError.DECODE_EXCEPTION
+            ) continue;
 			if (err.kind != null && err.kind.equalsIgnoreCase("NonFatal")) continue;
 			throw new TwitterException(err.message, err.code, request);
 		}

@@ -31,6 +31,7 @@ public class TwitterError {
 	public static final int ALREADY_FAVORITED = 139;
 	public static final int ALREADY_UNFAVORITED = 144;
 	public static final int TIMEOUT_UNSPECIFIED = 29;
+	public static final int DECODE_EXCEPTION = 214;
 
 	public String message;
 	public String[] path;
