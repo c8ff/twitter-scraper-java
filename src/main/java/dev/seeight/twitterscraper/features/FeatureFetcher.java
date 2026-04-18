@@ -45,6 +45,8 @@ public class FeatureFetcher {
 	private static final Pattern endPattern = Pattern.compile("[0-9]*:function\\([A-z],[A-z]\\)\\{");
 	private static final Pattern entryPattern = Pattern.compile("[0-9]*:e=>\\{e\\.exports=\\{queryId:");
 
+    public static String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+
 	public static class TwitterPage {
 		public SelfUser user;
 		private Map<String, JsonElement> features;
@@ -97,7 +99,7 @@ public class FeatureFetcher {
                 .header("Set-Fetch-Dest", "document")
                 .header("Set-Fetch-Mode", "navigate")
                 .header("Set-Fetch-Site", "cross-site")
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0")
+                .header("User-Agent", userAgent)
                 .build();
 
 		try (var response = client.newCall(req).execute()) {
