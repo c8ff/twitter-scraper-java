@@ -144,7 +144,8 @@ public class User extends Entry {
 
 		// Replace "t.co" links with normal links
 		JsonObject entities = h.object("entities");
-		JsonArray v = h.set(entities).next("description").next("urls").array();
+        h.set(entities).next("description");
+		JsonArray v = h.has("urls") ? h.array("urls") : new JsonArray();
 
 		ref.descriptionUrls = Collections.emptyList();
 

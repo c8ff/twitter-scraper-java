@@ -194,7 +194,7 @@ public class LegacyUser extends Entry {
 
 			public static Description fromJson(JsonHelper h, JsonObject obj) {
 				h.set(obj);
-				h.next("urls");
+                if (!h.tryNext("urls")) return new Description(new ArrayList<>());
 				var a = h.array();
 				if (a.isEmpty()) return new Description(new ArrayList<>());
 				var i = a.get(0);
