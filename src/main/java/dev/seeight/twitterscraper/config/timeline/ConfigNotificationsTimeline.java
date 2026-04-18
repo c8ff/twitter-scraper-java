@@ -38,7 +38,7 @@ public class ConfigNotificationsTimeline implements IConfigJsonTree<Notification
 
 	public ConfigNotificationsTimeline(String cursor) {
 		this.cursor = cursor;
-        this.count = cursor == null ? 40 : 20;
+        this.count = cursor == null ? 20 : 40;
 	}
 
 	@Override
@@ -55,6 +55,7 @@ public class ConfigNotificationsTimeline implements IConfigJsonTree<Notification
 	public enum TimelineType {
 		All,
 		Mentions,
-		Verified
+		Verified,
+		Priority
 	}
 }
