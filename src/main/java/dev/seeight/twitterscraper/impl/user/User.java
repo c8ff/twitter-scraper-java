@@ -80,6 +80,9 @@ public class User extends Entry {
 	public boolean notifications;
 	public boolean wantRetweets;
 
+	public boolean followRequestSent;
+	public boolean hasGraduatedAccess;
+
 	public static User fromJson(Gson gson, JsonObject obj, JsonHelper h) {
 		User ref = GsonUtil.createObject(gson, User.class);
 
@@ -117,9 +120,17 @@ public class User extends Entry {
 			ref.birthdate = birthdate;
 		}
 
-		ref.profileImageUrl = h.set(obj).next("avatar").string("image_url", null);
+		h.set(obj);
+		if (h.has("avatar"))
+			ref.profileImageUrl = h.set(obj).next("avatar").string("image_url", null);
 
-		h.set(obj).next("core");
+		h.set(obj);
+		ref.followRequestSent = h.bool("follow_request_sent", false);
+		ref.hasGraduatedAccess = h.bool("has_graduated_access", false);
+
+		if (h.set(obj).has("core"))
+			h.set(obj).next("core");
+		else h.set(legacy);
 
 		ref.screenName = h.string("screen_name");
 		ref.name = h.string("name", "[restricted]");
