@@ -45,7 +45,7 @@ public class TwitterError {
 
 		TwitterError error = new TwitterError();
 		error.message = h.string("message");
-		error.code = h.integer("code");
+		error.code = h.integer("code", -1);
 		error.path = h.stringArray("path", new String[0]);
 		error.kind = h.string("kind", null);
 		error.name = h.string("name", null);
