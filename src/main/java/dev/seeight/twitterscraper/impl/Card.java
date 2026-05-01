@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import dev.seeight.twitterscraper.TwitterList;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import dev.seeight.util.ListUtil;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.List;
 @Generated("dev.seeight.twitterscraper.GenerateClassHelper")
 public class Card {
     public String restId;
-    public Legacy legacy;
+    public @Nullable Legacy legacy;
 
     public static class Legacy {
         public List<BindingValues> bindingValues;
@@ -165,7 +166,11 @@ public class Card {
         var o = new Card();
         h.set(z);
         o.restId = h.string("rest_id");
-        o.legacy = Legacy.fromJson(h, h.object("legacy"));
+		if (h.has("legacy")) {
+        	o.legacy = Legacy.fromJson(h, h.object("legacy"));
+		} else {
+			o.legacy = null;
+		}
         h.set(z);
         return o;
     }
