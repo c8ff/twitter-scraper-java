@@ -113,8 +113,14 @@ public class Tweet extends Entry {
         tweet.postImageDescription = helper.string("post_image_description", null);
         tweet.postVideoDescription = helper.string("post_video_description", null);
 		tweet.id = rootObject.get("rest_id").getAsString();
-		tweet.views = helper.set(rootObject).next("views").string("count", null);
-		tweet.publishDevice = helper.set(rootObject).string("source");
+
+		helper.set(rootObject);
+		if (helper.has("views"))
+			tweet.views = helper.next("views").string("count", null);
+		else if (helper.has("view_count_info"))
+			tweet.views = helper.next("view_count_info").string("count", null);
+
+		tweet.publishDevice = helper.set(rootObject).string("source", null);
 
 		helper.set(legacy);
 		tweet.bookmarks = helper.integer("bookmark_count");
