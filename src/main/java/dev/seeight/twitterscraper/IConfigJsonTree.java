@@ -48,7 +48,9 @@ public interface IConfigJsonTree<T> extends IConfig<T> {
             try {
                 json = JsonParser.parseString(responseStr);
             } catch (Throwable e) {
-                throw new RuntimeException("Cannot parse JSON. Original response: " + responseStr, e);
+				JsonFormatException z = new JsonFormatException("Cannot parse JSON.", e);
+				z.source = responseStr;
+				throw z;
             }
             try {
                 return this.fromJson(assertErrors(json, request, errors), gson, errors);
