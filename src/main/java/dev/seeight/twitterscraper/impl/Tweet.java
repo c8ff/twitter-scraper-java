@@ -97,6 +97,8 @@ public class Tweet extends Entry {
 			legacy = rootObject.getAsJsonObject("legacy");
 		} else if (helper.equals("__typename", "TweetTombstone")) {
 			throw new UnsupportedOperationException("TweetTombstone");
+		} else if (helper.equals("__typename", "TweetUnavailable")) {
+			throw new UnsupportedOperationException("TweetUnavailable");
 		} else {
 			legacy = helper.object("legacy");
 		}

@@ -29,6 +29,8 @@ import dev.seeight.twitterscraper.impl.user.User;
 import dev.seeight.twitterscraper.util.JsonHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+
 // TODO: Separate entry from items. (An entry is a wrapper, can contain an item, or various items.) (an item is a user, tweet, etc.)
 public class Entry {
 	public String entryId;
@@ -61,14 +63,22 @@ public class Entry {
 				if (!h.has("result"))
 					return null;
 
-                h.next("result");
-                var type = h.string("__typename");
-                if (type.equals("TweetTombstone")) {
-                    var e = TweetTombstone.fromJson(h, itemContent);
-                    e.entryId = entryId;
-                    e.sortIndex = sortIndex;
-                    return e;
-                }
+				h.next("result");
+				var type = h.string("__typename");
+				if (type.equals("TweetTombstone")) {
+					var e = TweetTombstone.fromJson(h, h.object());
+					e.entryId = entryId;
+					e.sortIndex = sortIndex;
+					return e;
+				} else if (type.equals("TweetUnavailable")) {
+					var e = new TweetTombstone();
+					e.text = new NotificationF.RichMessage();
+					e.text.entities = Collections.emptyList();
+					e.text.text = "This tweet is unavailable. Reason: " + h.string("reason", "(unspecified)");
+					e.entryId = entryId;
+					e.sortIndex = sortIndex;
+					return e;
+				}
 
 				Tweet e = Tweet.fromJson(gson, h.object(), h);
 				e._tweetDisplayType = h.set(itemContent).string("tweetDisplayType", "Tweet");
